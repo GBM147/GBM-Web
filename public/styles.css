@@ -336,3 +336,31 @@ button{cursor:pointer}
   background:none !important;
   -webkit-text-fill-color:#b8a4e9 !important;
 }
+
+
+/* --- Cinematic scroll sequence inspired by the reference technique --- */
+.scroll-story{height:430vh;background:#07070b;position:relative;color:#f4f2f7}
+.scroll-story-pin{height:100vh;min-height:680px;position:sticky;top:0;overflow:hidden;isolation:isolate}
+.story-scene{position:absolute;inset:0;background:#0c0c11;overflow:hidden;transform-origin:center center}
+.story-sky{position:absolute;inset:0;background:radial-gradient(circle at 70% 28%,rgba(183,156,255,.15),transparent 28%),linear-gradient(180deg,#11101a 0%,#0c0c12 52%,#17131a 100%)}
+.story-wall{position:absolute;left:17%;right:9%;top:15%;height:56%;background:linear-gradient(145deg,#37333b,#17161c 58%,#24202a);transform:perspective(900px) rotateY(-7deg);box-shadow:inset 0 0 90px rgba(0,0,0,.42)}
+.story-window-light{position:absolute;width:42%;height:65%;left:4%;top:10%;background:linear-gradient(120deg,rgba(220,246,255,.24),transparent 58%);clip-path:polygon(0 0,100% 8%,88% 100%,0 87%);filter:blur(2px)}
+.story-floor{position:absolute;left:7%;right:3%;bottom:-22%;height:66%;background:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(180deg,#27242b,#0e0e13);background-size:55px 55px,55px 55px,100% 100%;transform:perspective(700px) rotateX(68deg);transform-origin:center top;box-shadow:inset 0 35px 100px rgba(0,0,0,.4)}
+.story-grid{position:absolute;inset:0;background:radial-gradient(circle at 50% 60%,transparent 0 23%,rgba(183,156,255,.08) 35%,transparent 60%);pointer-events:none}
+.story-frame{position:absolute;border:1px solid rgba(255,255,255,.15);border-radius:24px;background:#121219;box-shadow:0 50px 110px rgba(0,0,0,.55);transform-style:preserve-3d}
+.story-frame-back{width:52%;height:48%;right:10%;top:25%;opacity:.38;transform:rotateY(-14deg) rotateZ(5deg) translateZ(-90px)}
+.story-frame-main{width:56%;height:52%;right:12%;top:19%;overflow:hidden;transform:rotateY(-8deg) rotateZ(-2deg) translateZ(80px)}
+.story-browser{height:32px;background:#1a1920;display:flex;align-items:center;gap:5px;padding:0 12px}
+.story-browser span{width:6px;height:6px;border-radius:50%;background:#5c5864}.story-browser b{margin-left:auto;font:500 7px "Space Grotesk";color:#77737f}
+.story-screen{height:calc(100% - 32px);padding:42px;background:linear-gradient(145deg,#f2eee7,#d8d1c8);color:#18161c}
+.story-screen small{font-size:7px;letter-spacing:.18em;color:#77727b}.story-screen strong{display:block;font:600 clamp(30px,4vw,58px)/.92 "Space Grotesk";letter-spacing:-.06em;margin-top:16px}.story-screen em{font-style:normal;color:#7860aa}.story-screen-line{width:120px;height:3px;border-radius:3px;background:#1b1820;margin-top:28px}
+.story-orb{position:absolute;right:9%;bottom:19%;width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 28% 22%,#d9caff,#654a91 52%,#18121f);display:grid;place-items:center;font:700 27px "Space Grotesk";box-shadow:0 30px 70px rgba(0,0,0,.5);transform:translateZ(150px)}
+.story-phone{position:absolute;right:5%;bottom:8%;width:118px;height:230px;border:5px solid #292731;border-radius:25px;background:linear-gradient(160deg,#252032,#0e0e13);padding:39px 12px 12px;box-shadow:0 35px 70px rgba(0,0,0,.5);transform:rotate(8deg) translateZ(180px);z-index:5}
+.story-phone small{font-size:5px;letter-spacing:.16em;color:#938d9e}.story-phone strong{display:block;font:600 18px/.96 "Space Grotesk";margin-top:18px}
+.story-copy{position:absolute;z-index:10;left:max(24px,calc((100vw - 1200px)/2));top:50%;transform:translateY(-50%);width:min(430px,38vw)}
+.story-step{position:absolute;left:0;top:50%;transform:translateY(-50%);width:100%;opacity:0;visibility:hidden}.story-step.is-active{opacity:1;visibility:visible}
+.story-step>span{font:600 9px "Space Grotesk";letter-spacing:.18em;color:#96919f}.story-step h2{font:600 clamp(55px,6vw,88px)/.9 "Space Grotesk";letter-spacing:-.065em;margin:20px 0}.story-step h2 em{font-style:normal;color:#b79cff}.story-step p{font-size:15px;line-height:1.75;color:#a29eaa;max-width:390px}
+.story-progress{position:absolute;z-index:12;left:max(24px,calc((100vw - 1200px)/2));bottom:58px;display:flex;gap:7px}.story-progress i{display:block;width:42px;height:2px;background:rgba(255,255,255,.2)}.story-progress i:first-child{background:#f4f2f7}
+.story-scroll-hint{position:absolute;z-index:12;right:38px;bottom:48px;color:#77737e;font:600 8px "Space Grotesk";letter-spacing:.18em}.story-scroll-hint span{color:#c7c2d0;margin-left:8px}
+@media(max-width:980px){.scroll-story{height:360vh}.story-frame-main{width:65%;right:6%;top:24%}.story-frame-back{width:62%;right:4%;top:29%}.story-copy{left:28px;top:auto;bottom:105px;transform:none;width:min(520px,calc(100% - 56px))}.story-step{top:auto;transform:none}.story-step h2{font-size:58px;margin:13px 0}.story-step p{font-size:13px;max-width:460px}.story-phone{right:3%;bottom:7%}}
+@media(max-width:640px){.scroll-story{height:340vh}.story-wall{left:4%;right:-18%;top:18%;height:47%}.story-frame-main{width:82%;height:39%;right:-2%;top:21%}.story-frame-back{width:79%;height:36%;right:-4%;top:25%}.story-screen{padding:24px}.story-screen strong{font-size:31px}.story-orb{width:55px;height:55px;right:10%;bottom:30%;font-size:18px}.story-phone{width:91px;height:175px;right:1%;bottom:8%;padding:29px 8px 8px}.story-phone strong{font-size:14px}.story-copy{left:20px;bottom:90px;width:calc(100% - 40px)}.story-step h2{font-size:46px}.story-step p{font-size:12px;line-height:1.55}.story-progress{left:20px;bottom:38px}.story-progress i{width:28px}.story-scroll-hint{right:20px;bottom:37px;font-size:7px}}
