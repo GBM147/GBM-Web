@@ -379,3 +379,7 @@ body.modal-open{overflow:hidden}
 .project-card{transition:transform .3s ease,filter .3s ease}
 .project-card:hover{transform:translateY(-6px)}
 .project-card:hover .project-meta>span{background:#f4f2f8;color:#16141b}
+
+
+/* --- Final visibility safety for animated elements --- */
+.reveal{visibility:visible !important;opacity:1 !important}
