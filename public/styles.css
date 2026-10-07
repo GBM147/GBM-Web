@@ -302,3 +302,24 @@ button{cursor:pointer}
 .service-stage .stage-visual{transform:perspective(1200px) rotateY(-10deg) !important}
 .service-stage:hover .stage-window-main{transform:translateZ(72px) rotate(1deg)}
 .service-stage:hover .stage-orb{transform:translateZ(145px)}
+
+
+/* --- Service stage deterministic layout --- */
+.service-stage{display:block;position:relative;min-height:650px}
+.service-stage .stage-copy{position:relative;width:44%;max-width:520px;z-index:4}
+.service-stage .stage-visual{position:absolute;right:-2%;top:0;width:61%;height:100%;min-height:0;z-index:2;transform:perspective(1200px) rotateY(-10deg) !important}
+.service-stage .stage-floor{left:5%;right:0;bottom:4%;height:60%}
+.service-stage .stage-window-back{width:73%;height:55%;right:2%;top:18%}
+.service-stage .stage-window-main{width:82%;height:64%;right:8%;top:10%}
+.service-stage .stage-orb{right:0;bottom:5%}
+@media(max-width:980px){
+  .service-stage{min-height:780px}
+  .service-stage .stage-copy{width:100%;max-width:560px}
+  .service-stage .stage-visual{position:absolute;right:0;top:285px;width:100%;height:470px}
+}
+@media(max-width:640px){
+  .service-stage{min-height:740px}
+  .service-stage .stage-visual{top:300px;height:360px;width:100%;right:0}
+  .service-stage .stage-window-main{width:88%;height:63%;right:4%}
+  .service-stage .stage-window-back{width:78%;height:55%;right:1%}
+}
