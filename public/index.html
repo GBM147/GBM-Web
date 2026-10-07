@@ -235,6 +235,58 @@
       </div>
     </section>
 
+    <section class="section reviews-section" id="avaliacoes">
+      <div class="container">
+        <div class="reviews-head reveal">
+          <div>
+            <div class="eyebrow"><span class="eyebrow-dot"></span> Avaliações</div>
+            <h2>O que os clientes<br><span>vão dizer da experiência.</span></h2>
+          </div>
+          <div class="reviews-summary">
+            <div class="reviews-stars" aria-label="5 de 5 estrelas">★★★★★</div>
+            <strong>5,0</strong>
+            <span>avaliação média</span>
+          </div>
+        </div>
+
+        <div class="reviews-empty reveal" id="reviewsEmpty">
+          <div class="reviews-empty-icon">★</div>
+          <div>
+            <small>PRIMEIROS CLIENTES</small>
+            <h3>As primeiras avaliações entram aqui.</h3>
+            <p>Depois de cada projeto, o cliente poderá registrar a experiência, a nota e um depoimento para aparecer nesta seção.</p>
+          </div>
+          <button class="button button-primary" type="button" id="openReviewForm">Deixar avaliação <span>↗</span></button>
+        </div>
+
+        <div class="reviews-grid" id="reviewsGrid" hidden></div>
+
+        <div class="review-form-wrap" id="reviewFormWrap" aria-hidden="true">
+          <form class="review-form" id="reviewForm">
+            <button class="review-form-close" type="button" id="closeReviewForm" aria-label="Fechar formulário">×</button>
+            <div class="eyebrow dark"><span class="eyebrow-dot"></span> Compartilhe sua experiência</div>
+            <h3>Como foi trabalhar com a GBM Web?</h3>
+            <div class="review-rating" role="radiogroup" aria-label="Escolha sua nota">
+              <button type="button" data-rating="1" aria-label="1 estrela">★</button>
+              <button type="button" data-rating="2" aria-label="2 estrelas">★</button>
+              <button type="button" data-rating="3" aria-label="3 estrelas">★</button>
+              <button type="button" data-rating="4" aria-label="4 estrelas">★</button>
+              <button type="button" data-rating="5" aria-label="5 estrelas">★</button>
+            </div>
+            <input type="hidden" name="nota" id="reviewRatingInput" value="5">
+            <div class="form-row">
+              <label>Seu nome<input type="text" name="nome" required placeholder="Nome do cliente"></label>
+              <label>Empresa<input type="text" name="empresa" required placeholder="Nome da empresa"></label>
+            </div>
+            <label>Segmento<input type="text" name="segmento" placeholder="Ex.: Barbearia, restaurante, pet shop"></label>
+            <label>Seu depoimento<textarea name="depoimento" required rows="5" placeholder="Conte como foi sua experiência com a GBM Web."></textarea></label>
+            <button class="button button-primary" type="submit">Enviar avaliação <span>↗</span></button>
+            <p class="review-form-status" id="reviewFormStatus" role="status"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+
     <section class="section pricing-section section-light" id="planos">
       <div class="container">
         <div class="section-heading reveal">
