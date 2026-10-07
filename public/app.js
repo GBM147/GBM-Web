@@ -332,4 +332,9 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && projectModal?.classList.contains("is-open")) closeProjectModal();
 });
 
+const projectFromUrl = new URLSearchParams(window.location.search).get("projeto");
+if (projectFromUrl && projectData[projectFromUrl]) {
+  window.addEventListener("load", () => openProjectModal(projectFromUrl));
+}
+
 modalCta?.addEventListener("click", () => closeProjectModal());
