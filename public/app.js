@@ -338,3 +338,47 @@ if (projectFromUrl && projectData[projectFromUrl]) {
 }
 
 modalCta?.addEventListener("click", () => closeProjectModal());
+
+
+const reviewFormWrap = document.querySelector("#reviewFormWrap");
+const openReviewFormButton = document.querySelector("#openReviewForm");
+const closeReviewFormButton = document.querySelector("#closeReviewForm");
+const reviewRatingInput = document.querySelector("#reviewRatingInput");
+const reviewRatingButtons = [...document.querySelectorAll(".review-rating button")];
+const reviewForm = document.querySelector("#reviewForm");
+const reviewFormStatus = document.querySelector("#reviewFormStatus");
+
+function setReviewRating(rating) {
+  const value = String(Math.max(1, Math.min(5, Number(rating) || 5)));
+  if (reviewRatingInput) reviewRatingInput.value = value;
+  reviewRatingButtons.forEach((button) => {
+    button.classList.toggle("is-selected", Number(button.dataset.rating) <= Number(value));
+  });
+}
+
+setReviewRating(5);
+
+openReviewFormButton?.addEventListener("click", () => {
+  reviewFormWrap?.classList.add("is-open");
+  reviewFormWrap?.setAttribute("aria-hidden", "false");
+  setTimeout(() => reviewForm?.querySelector("input[name=nome]")?.focus(), 30);
+});
+
+closeReviewFormButton?.addEventListener("click", () => {
+  reviewFormWrap?.classList.remove("is-open");
+  reviewFormWrap?.setAttribute("aria-hidden", "true");
+});
+
+reviewRatingButtons.forEach((button) => {
+  button.addEventListener("mouseenter", () => setReviewRating(button.dataset.rating));
+  button.addEventListener("click", () => setReviewRating(button.dataset.rating));
+});
+
+reviewForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (reviewFormStatus) {
+    reviewFormStatus.textContent = "Avaliação registrada para análise. Em breve ela poderá aparecer no site.";
+  }
+  reviewForm.reset();
+  setReviewRating(5);
+});
