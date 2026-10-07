@@ -44,6 +44,81 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
+const reviewLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: "Muitas avaliações enviadas. Aguarde alguns minutos e tente novamente."
+  }
+});
+
+app.post("/api/enviar-avaliacao", reviewLimiter, async (req, res) => {
+  const nome = String(req.body.nome || "").trim();
+  const empresa = String(req.body.empresa || "").trim();
+  const segmento = String(req.body.segmento || "").trim();
+  const depoimento = String(req.body.depoimento || "").trim();
+  const nota = Math.max(1, Math.min(5, Number(req.body.nota) || 0));
+  const honeypot = String(req.body.website || "").trim();
+
+  if (honeypot) return res.json({ success: true });
+
+  if (!nome || !empresa || !depoimento || !Number.isInteger(nota) || !nota) {
+    return res.status(400).json({
+      success: false,
+      error: "Preencha nome, empresa, nota e depoimento."
+    });
+  }
+
+  if (!resend || !process.env.EMAIL_SUPORTE || !process.env.EMAIL_FROM) {
+    return res.status(503).json({
+      success: false,
+      error: "O envio de avaliações ainda não foi configurado."
+    });
+  }
+
+  const estrelas = "★".repeat(nota) + "☆".repeat(5 - nota);
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#15151c">
+      <h2>Nova avaliação — GBM Web</h2>
+      <p><strong>Nota:</strong> ${estrelas} (${nota}/5)</p>
+      <p><strong>Cliente:</strong> ${escapeHtml(nome)}</p>
+      <p><strong>Empresa:</strong> ${escapeHtml(empresa)}</p>
+      <p><strong>Segmento:</strong> ${escapeHtml(segmento || "Não informado")}</p>
+      <hr>
+      <p><strong>Depoimento:</strong></p>
+      <p>${escapeHtml(depoimento).replace(/\n/g, "<br>")}</p>
+    </div>
+  `;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM,
+      to: [process.env.EMAIL_SUPORTE],
+      subject: `Nova avaliação GBM Web — ${nota}/5 — ${nome}`,
+      html
+    });
+
+    if (error) {
+      console.error("[RESEND REVIEW]", error);
+      return res.status(502).json({
+        success: false,
+        error: "Não foi possível enviar sua avaliação agora."
+      });
+    }
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error("[REVIEW]", error);
+    return res.status(500).json({
+      success: false,
+      error: "Ocorreu um erro ao enviar sua avaliação."
+    });
+  }
+});
+
 app.post("/api/enviar-contato", contactLimiter, async (req, res) => {
   const nome = String(req.body.nome || "").trim();
   const email = String(req.body.email || "").trim();
