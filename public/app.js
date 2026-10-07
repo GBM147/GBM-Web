@@ -202,3 +202,56 @@ if (!reducedMotion) {
 }
 
 window.addEventListener("load", () => ScrollTrigger.refresh());
+
+
+if (!reducedMotion) {
+  const story = document.querySelector(".scroll-story");
+  const storySteps = gsap.utils.toArray(".story-step");
+  const storyBars = gsap.utils.toArray(".story-progress i");
+
+  if (story && storySteps.length) {
+    gsap.set(storySteps, { autoAlpha: 0, y: 26 });
+    gsap.set(storySteps[0], { autoAlpha: 1, y: 0 });
+
+    const storyTimeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: story,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 1,
+        pin: false
+      }
+    });
+
+    storyTimeline
+      .to(".story-wall", { scale: 1.08, x: 20, duration: 1 }, 0)
+      .to(".story-frame-back", { x: 55, y: -12, rotateY: -18, rotateZ: 8, duration: 1 }, 0)
+      .to(".story-frame-main", { scale: 1.04, x: 24, y: -8, rotateY: -12, duration: 1 }, 0)
+      .to(".story-phone", { y: -30, x: -15, rotate: 2, duration: 1 }, 0)
+      .to(".story-orb", { x: -30, y: -45, scale: 1.15, duration: 1 }, 0)
+      .to(storySteps[0], { autoAlpha: 0, y: -26, duration: .18 }, .86)
+      .to(storySteps[1], { autoAlpha: 1, y: 0, duration: .18 }, .92)
+      .to(storyBars[0], { backgroundColor: "#ffffff", duration: .05 }, .92)
+      .to(storyBars[1], { backgroundColor: "#ffffff", duration: .05 }, 1.05)
+      .to(".story-wall", { scale: 1.16, x: -15, duration: 1 }, 1)
+      .to(".story-frame-main", { scale: 1.1, x: -5, y: -20, rotateY: -5, duration: 1 }, 1)
+      .to(".story-phone", { y: -70, x: -45, rotate: -4, duration: 1 }, 1)
+      .to(".story-orb", { x: -65, y: -20, duration: 1 }, 1)
+      .to(storySteps[1], { autoAlpha: 0, y: -26, duration: .18 }, 1.86)
+      .to(storySteps[2], { autoAlpha: 1, y: 0, duration: .18 }, 1.92)
+      .to(storyBars[1], { backgroundColor: "rgba(255,255,255,.2)", duration: .05 }, 1.92)
+      .to(storyBars[2], { backgroundColor: "#ffffff", duration: .05 }, 2.05)
+      .to(".story-frame-main", { scale: 1.18, x: 38, y: -35, rotateY: 4, duration: 1 }, 2)
+      .to(".story-frame-back", { x: 100, y: -30, opacity: .18, duration: 1 }, 2)
+      .to(".story-phone", { y: -100, x: -100, rotate: -8, duration: 1 }, 2)
+      .to(".story-orb", { x: -100, y: -70, scale: .75, duration: 1 }, 2)
+      .to(storySteps[2], { autoAlpha: 0, y: -26, duration: .18 }, 2.86)
+      .to(storySteps[3], { autoAlpha: 1, y: 0, duration: .18 }, 2.92)
+      .to(storyBars[2], { backgroundColor: "rgba(255,255,255,.2)", duration: .05 }, 2.92)
+      .to(storyBars[3], { backgroundColor: "#ffffff", duration: .05 }, 3.05)
+      .to(".story-frame-main", { scale: 1.25, x: 75, y: -60, rotateY: 10, duration: 1 }, 3)
+      .to(".story-screen", { background: "linear-gradient(145deg,#191521,#0b0a10)", color: "#f4f2f7", duration: 1 }, 3)
+      .to(".story-phone", { y: -145, x: -155, rotate: -12, duration: 1 }, 3)
+      .to(".story-wall", { scale: 1.28, x: -40, duration: 1 }, 3);
+  }
+}
