@@ -1,6 +1,6 @@
 import { SITE_CONFIG } from "./site-config.js";
-import { gsap } from "https://cdn.jsdelivr.net/npm/gsap@3.15.0/+esm";
-import { ScrollTrigger } from "https://cdn.jsdelivr.net/npm/gsap@3.15.0/ScrollTrigger/+esm";
+import { gsap } from "https://cdn.jsdelivr.net/npm/gsap@3.15.0/index.js";
+import { ScrollTrigger } from "https://cdn.jsdelivr.net/npm/gsap@3.15.0/ScrollTrigger.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
