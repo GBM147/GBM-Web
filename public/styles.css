@@ -323,3 +323,16 @@ button{cursor:pointer}
   .service-stage .stage-window-main{width:88%;height:63%;right:4%}
   .service-stage .stage-window-back{width:78%;height:55%;right:1%}
 }
+
+
+/* --- Heading paint safety for premium stage --- */
+.stage-copy h3{
+  color:#f4f3f7 !important;
+  background:none !important;
+  -webkit-text-fill-color:#f4f3f7 !important;
+}
+.stage-copy h3 em{
+  color:#b8a4e9 !important;
+  background:none !important;
+  -webkit-text-fill-color:#b8a4e9 !important;
+}
