@@ -278,3 +278,14 @@ button{cursor:pointer}
 .google-window{position:absolute;left:30px;right:30px;bottom:28px;border:1px solid rgba(30,24,38,.1);background:rgba(255,255,255,.42);border-radius:13px;padding:12px}.google-window>div{font-size:7px;color:#706b77}.google-window strong{display:block;font:600 14px "Space Grotesk";margin:8px 0 4px}.google-window small{font-size:6px;opacity:.58}
 @media(max-width:980px){.hero{min-height:auto}.hero-grid{grid-template-columns:1fr}.hero-scene{min-height:620px}.hero-browser{width:82%;right:7%}.service-stage{grid-template-columns:1fr;min-height:780px}.stage-visual{min-height:420px}.premium-service-row{grid-template-columns:1fr}.premium-service-card{min-height:340px}.premium-card-copy{margin-top:55px}}
 @media(max-width:640px){.hero-scene{min-height:530px;margin-top:5px}.scene-label-top{top:8px}.scene-label-bottom{bottom:0}.device-stack{inset:10% 0 8%}.hero-browser{width:91%;right:2%;height:310px;border-width:5px}.hero-browser .browser-screen{padding:12px}.premium-mock{padding:28px 10px 18px}.premium-mock h2{font-size:32px;margin:12px 0 18px}.hero-browser .mock-nav span{display:none}.floating-phone{width:104px;height:205px;right:0;bottom:4%;border-width:5px}.floating-phone-screen{border-radius:16px;padding:33px 9px 9px}.floating-phone-screen strong{font-size:16px}.floating-orbit{width:58px;height:58px;left:0}.floating-orbit span{font-size:15px}.floating-orbit small{bottom:10px}.service-stage{padding:28px;border-radius:27px;min-height:740px}.stage-copy h3{font-size:45px}.stage-visual{min-height:360px}.stage-window-main{width:88%;height:63%;right:4%}.stage-browser-content{padding:21px}.stage-browser-content strong{font-size:27px}.stage-orb{width:58px;height:58px;font-size:19px}.premium-service-card{border-radius:26px;min-height:330px}.premium-card-copy h3{font-size:31px}.premium-service-card.dark .service-phone{width:104px;height:195px}.premium-service-card.lilac .google-window{left:20px;right:20px}}
+
+
+/* --- Hero visibility / contrast safety --- */
+.hero-copy{position:relative;z-index:20}
+.hero-copy .eyebrow,.hero-title,.hero-subtitle,.hero-actions,.hero-proof{position:relative;z-index:21}
+.hero-title{color:#f4f3f7}
+.hero-subtitle{color:#aaa8b5}
+.hero-browser .browser-screen{background:linear-gradient(145deg,#f8f6f0 0%,#e6e2da 100%) !important;color:#17151b !important}
+.hero-browser .mock-nav,.hero-browser .mock-nav b{color:#17151b !important}
+.hero-browser .premium-mock h2{color:#17151b}
+@media(max-width:980px){.hero-copy{z-index:30}}
