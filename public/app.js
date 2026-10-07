@@ -204,54 +204,132 @@ if (!reducedMotion) {
 window.addEventListener("load", () => ScrollTrigger.refresh());
 
 
-if (!reducedMotion) {
-  const story = document.querySelector(".scroll-story");
-  const storySteps = gsap.utils.toArray(".story-step");
-  const storyBars = gsap.utils.toArray(".story-progress i");
+const projectData = {
+  barbearia: {
+    kicker: "DEMO / BARBEARIA",
+    title: "Seu estilo começa aqui.",
+    description: "Uma experiência digital pensada para transformar a busca por um corte em agendamento. Visual marcante, serviços organizados e contato imediato.",
+    structure: "Serviços + horários",
+    focus: "Agendamento",
+    experience: "Mobile first",
+    theme: "modal-barbearia",
+    cta: "Quero este projeto"
+  },
+  petshop: {
+    kicker: "DEMO / PET SHOP",
+    title: "Cuidado de verdade.",
+    description: "Um site acolhedor para apresentar produtos, serviços e atendimento, passando confiança para quem procura cuidar melhor do seu pet.",
+    structure: "Serviços + contato",
+    focus: "Confiança",
+    experience: "Navegação simples",
+    theme: "modal-petshop",
+    cta: "Quero este projeto"
+  },
+  restaurante: {
+    kicker: "DEMO / RESTAURANTE",
+    title: "Sabor que fica na memória.",
+    description: "Uma presença digital criada para destacar o cardápio, abrir o caminho até o restaurante e facilitar pedidos e reservas.",
+    structure: "Cardápio + localização",
+    focus: "Pedidos",
+    experience: "Rápida e visual",
+    theme: "modal-restaurante",
+    cta: "Quero este projeto"
+  }
+};
 
-  if (story && storySteps.length) {
-    gsap.set(storySteps, { autoAlpha: 0, y: 26 });
-    gsap.set(storySteps[0], { autoAlpha: 1, y: 0 });
+const projectModal = document.querySelector("#projectModal");
+const modalPreview = document.querySelector("#projectModalPreview");
+const modalKicker = document.querySelector("#projectModalKicker");
+const modalTitle = document.querySelector("#projectModalTitle");
+const modalDescription = document.querySelector("#projectModalDescription");
+const modalStructure = document.querySelector("#projectModalStructure");
+const modalFocus = document.querySelector("#projectModalFocus");
+const modalExperience = document.querySelector("#projectModalExperience");
+const modalCta = document.querySelector("#projectModalCta");
 
-    const storyTimeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: story,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: 1,
-        pin: false
-      }
+function openProjectModal(projectKey) {
+  const project = projectData[projectKey];
+  if (!project || !projectModal) return;
+
+  modalKicker.textContent = project.kicker;
+  modalTitle.textContent = project.title;
+  modalDescription.textContent = project.description;
+  modalStructure.textContent = project.structure;
+  modalFocus.textContent = project.focus;
+  modalExperience.textContent = project.experience;
+  modalCta.textContent = project.cta;
+  const arrow = document.createElement("span");
+  arrow.textContent = "↗";
+  modalCta.appendChild(arrow);
+
+  modalPreview.className = "project-modal-preview " + project.theme;
+  modalPreview.innerHTML = `
+    <div class="modal-preview-window">
+      <div class="modal-browser"><i></i><i></i><i></i><b>${projectKey}.gbmweb.com.br</b></div>
+      <div class="modal-preview-screen">
+        <small>${project.kicker.replace("DEMO / ","")}</small>
+        <strong>${project.title}</strong>
+        <span>CONHECER PROJETO ↗</span>
+      </div>
+    </div>
+  `;
+
+  projectModal.classList.add("is-open");
+  projectModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+
+  if (!reducedMotion) {
+    gsap.fromTo(".project-modal-panel",
+      { y: 30, scale: .97, autoAlpha: 0 },
+      { y: 0, scale: 1, autoAlpha: 1, duration: .45, ease: "power3.out" }
+    );
+    gsap.fromTo("#projectModalPreview .modal-preview-window",
+      { rotate: -6, scale: .94 },
+      { rotate: -2, scale: 1, duration: .6, ease: "power3.out" }
+    );
+  }
+  setTimeout(() => document.querySelector(".project-modal-close")?.focus(), 30);
+}
+
+function closeProjectModal() {
+  if (!projectModal) return;
+  if (!reducedMotion) {
+    gsap.to(".project-modal-panel", {
+      y: 20, scale: .98, autoAlpha: 0, duration: .22, ease: "power2.in",
+      onComplete: finishCloseProjectModal
     });
-
-    storyTimeline
-      .to(".story-wall", { scale: 1.08, x: 20, duration: 1 }, 0)
-      .to(".story-frame-back", { x: 55, y: -12, rotateY: -18, rotateZ: 8, duration: 1 }, 0)
-      .to(".story-frame-main", { scale: 1.04, x: 24, y: -8, rotateY: -12, duration: 1 }, 0)
-      .to(".story-phone", { y: -30, x: -15, rotate: 2, duration: 1 }, 0)
-      .to(".story-orb", { x: -30, y: -45, scale: 1.15, duration: 1 }, 0)
-      .to(storySteps[0], { autoAlpha: 0, y: -26, duration: .18 }, .86)
-      .to(storySteps[1], { autoAlpha: 1, y: 0, duration: .18 }, .92)
-      .to(storyBars[0], { backgroundColor: "#ffffff", duration: .05 }, .92)
-      .to(storyBars[1], { backgroundColor: "#ffffff", duration: .05 }, 1.05)
-      .to(".story-wall", { scale: 1.16, x: -15, duration: 1 }, 1)
-      .to(".story-frame-main", { scale: 1.1, x: -5, y: -20, rotateY: -5, duration: 1 }, 1)
-      .to(".story-phone", { y: -70, x: -45, rotate: -4, duration: 1 }, 1)
-      .to(".story-orb", { x: -65, y: -20, duration: 1 }, 1)
-      .to(storySteps[1], { autoAlpha: 0, y: -26, duration: .18 }, 1.86)
-      .to(storySteps[2], { autoAlpha: 1, y: 0, duration: .18 }, 1.92)
-      .to(storyBars[1], { backgroundColor: "rgba(255,255,255,.2)", duration: .05 }, 1.92)
-      .to(storyBars[2], { backgroundColor: "#ffffff", duration: .05 }, 2.05)
-      .to(".story-frame-main", { scale: 1.18, x: 38, y: -35, rotateY: 4, duration: 1 }, 2)
-      .to(".story-frame-back", { x: 100, y: -30, opacity: .18, duration: 1 }, 2)
-      .to(".story-phone", { y: -100, x: -100, rotate: -8, duration: 1 }, 2)
-      .to(".story-orb", { x: -100, y: -70, scale: .75, duration: 1 }, 2)
-      .to(storySteps[2], { autoAlpha: 0, y: -26, duration: .18 }, 2.86)
-      .to(storySteps[3], { autoAlpha: 1, y: 0, duration: .18 }, 2.92)
-      .to(storyBars[2], { backgroundColor: "rgba(255,255,255,.2)", duration: .05 }, 2.92)
-      .to(storyBars[3], { backgroundColor: "#ffffff", duration: .05 }, 3.05)
-      .to(".story-frame-main", { scale: 1.25, x: 75, y: -60, rotateY: 10, duration: 1 }, 3)
-      .to(".story-screen", { background: "linear-gradient(145deg,#191521,#0b0a10)", color: "#f4f2f7", duration: 1 }, 3)
-      .to(".story-phone", { y: -145, x: -155, rotate: -12, duration: 1 }, 3)
-      .to(".story-wall", { scale: 1.28, x: -40, duration: 1 }, 3);
+  } else {
+    finishCloseProjectModal();
   }
 }
+
+function finishCloseProjectModal() {
+  projectModal.classList.remove("is-open");
+  projectModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+}
+
+document.querySelectorAll(".project-card[data-project]").forEach((card) => {
+  const activate = () => openProjectModal(card.dataset.project);
+  card.addEventListener("click", activate);
+  card.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      activate();
+    }
+  });
+});
+
+document.querySelectorAll("[data-modal-close]").forEach((element) => {
+  element.addEventListener("click", (event) => {
+    if (element.tagName === "A" && element.getAttribute("href") === "#contato") return;
+    event.preventDefault();
+    closeProjectModal();
+  });
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && projectModal?.classList.contains("is-open")) closeProjectModal();
+});
+
+modalCta?.addEventListener("click", () => closeProjectModal());
