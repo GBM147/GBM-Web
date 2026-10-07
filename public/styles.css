@@ -383,3 +383,35 @@ body.modal-open{overflow:hidden}
 
 /* --- Final visibility safety for animated elements --- */
 .reveal{visibility:visible !important;opacity:1 !important}
+
+
+/* --- Client reviews --- */
+.reviews-section{background:linear-gradient(180deg,#08080d 0%,#0d0d14 100%);overflow:hidden}
+.reviews-head{display:flex;justify-content:space-between;align-items:end;gap:40px;margin-bottom:52px}
+.reviews-head h2{font:600 clamp(45px,5.2vw,72px)/.94 "Space Grotesk";letter-spacing:-.06em;margin:16px 0 0}
+.reviews-head h2 span{color:var(--accent)}
+.reviews-summary{min-width:180px;padding:20px 22px;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.025);display:grid;grid-template-columns:auto auto;column-gap:10px;align-items:center}
+.reviews-stars{grid-column:1/-1;color:#f5d477;font-size:17px;letter-spacing:3px;margin-bottom:5px}
+.reviews-summary strong{font:600 34px "Space Grotesk";letter-spacing:-.04em}.reviews-summary span{font-size:10px;color:#85818d}
+.reviews-empty{position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;padding:28px 30px;border:1px dashed rgba(255,255,255,.16);border-radius:24px;background:radial-gradient(circle at 80% 20%,rgba(183,156,255,.09),transparent 34%),rgba(255,255,255,.02)}
+.reviews-empty-icon{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:#171520;border:1px solid rgba(183,156,255,.2);font-size:22px;color:var(--accent)}
+.reviews-empty small{font:600 8px "Space Grotesk";letter-spacing:.17em;color:#7b7684}
+.reviews-empty h3{font:600 23px/1 "Space Grotesk";letter-spacing:-.03em;margin:7px 0}
+.reviews-empty p{margin:0;color:#8e8a96;font-size:13px;line-height:1.65;max-width:650px}
+.reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.review-card{padding:28px;border-radius:24px;background:#f0ede7;color:#17151b;min-height:280px;display:flex;flex-direction:column}
+.review-card.dark{background:#15151d;color:#f2eff6}.review-card.lilac{background:#e1d8ec;color:#1a1720}
+.review-card-top{display:flex;justify-content:space-between;gap:14px}.review-card-stars{color:#8c6b19;font-size:14px;letter-spacing:2px}.review-card.dark .review-card-stars{color:#d8c07a}
+.review-card-quote{font:500 23px/1.18 "Space Grotesk";letter-spacing:-.03em;margin:30px 0 auto}
+.review-card-author{padding-top:20px;border-top:1px solid rgba(0,0,0,.11);display:flex;justify-content:space-between;gap:12px;align-items:end}
+.review-card.dark .review-card-author{border-color:rgba(255,255,255,.12)}
+.review-card-author strong{display:block;font:600 12px "Space Grotesk"}.review-card-author small{display:block;color:#77727c;font-size:9px;margin-top:4px}.review-card.dark .review-card-author small{color:#8d8994}
+.review-form-wrap{display:none;margin-top:18px}.review-form-wrap.is-open{display:block}
+.review-form{position:relative;padding:34px;border-radius:26px;background:#f2efe9;color:#17151b}
+.review-form h3{font:600 34px/.98 "Space Grotesk";letter-spacing:-.05em;margin:16px 0 28px;max-width:520px}
+.review-form-close{position:absolute;right:18px;top:18px;width:38px;height:38px;border:1px solid rgba(0,0,0,.12);border-radius:50%;background:transparent;font-size:22px}
+.review-rating{display:flex;gap:5px;margin-bottom:22px}.review-rating button{border:0;background:transparent;color:#c5beca;font-size:29px;padding:0;transition:transform .2s,color .2s}.review-rating button.is-selected,.review-rating button:hover{color:#9a7720;transform:translateY(-2px)}
+.review-form label{display:block;font-size:10px;font-weight:600;margin-bottom:15px}.review-form input,.review-form textarea{width:100%;margin-top:7px;border:1px solid rgba(0,0,0,.13);border-radius:13px;background:rgba(255,255,255,.72);padding:13px 14px;outline:none;color:#17151b}.review-form input:focus,.review-form textarea:focus{border-color:#8f74c1;box-shadow:0 0 0 3px rgba(143,116,193,.12)}
+.review-form-status{min-height:18px;margin:14px 0 0;font-size:12px;color:#6f6876}
+@media(max-width:760px){.reviews-head{align-items:start;flex-direction:column}.reviews-summary{width:100%;grid-template-columns:auto auto;}.reviews-empty{grid-template-columns:auto 1fr}.reviews-empty .button{grid-column:1/-1;width:max-content}.reviews-grid{grid-template-columns:1fr}.review-form{padding:26px}.review-form h3{font-size:30px}}
+@media(max-width:520px){.reviews-empty{grid-template-columns:1fr}.reviews-empty-icon{width:48px;height:48px}.reviews-empty .button{width:100%}.reviews-head h2{font-size:45px}}
