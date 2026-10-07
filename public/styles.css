@@ -372,3 +372,10 @@ button{cursor:pointer}
 body.modal-open{overflow:hidden}
 @media(max-width:800px){.project-modal{padding:16px}.project-modal-panel{grid-template-columns:1fr;max-height:calc(100vh - 32px)}.project-modal-preview{min-height:360px;padding:24px}.project-modal-preview .modal-preview-window{height:86%}.project-modal-content{padding:32px 28px 30px}.project-modal-grid{grid-template-columns:1fr 1fr}.project-modal-close{right:12px;top:12px}}
 @media(max-width:520px){.project-modal-grid{grid-template-columns:1fr}.project-modal-content h2{font-size:44px}.project-modal-preview{min-height:300px}.modal-preview-screen{padding:22px}.modal-preview-screen strong{font-size:38px}}
+
+
+/* --- Visibility fallback --- */
+.reveal{visibility:visible;opacity:1}
+.project-card{transition:transform .3s ease,filter .3s ease}
+.project-card:hover{transform:translateY(-6px)}
+.project-card:hover .project-meta>span{background:#f4f2f8;color:#16141b}
