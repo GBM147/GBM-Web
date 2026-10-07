@@ -126,60 +126,6 @@
       <div class="marquee-track"><span>SITES PROFISSIONAIS</span><b>✦</b><span>DESIGN QUE VENDE</span><b>✦</b><span>TECNOLOGIA MODERNA</span><b>✦</b><span>SITES PROFISSIONAIS</span><b>✦</b><span>DESIGN QUE VENDE</span><b>✦</b></div>
     </section>
 
-    <section class="scroll-story" id="experiencia" aria-label="Experiência de scroll da GBM Web">
-      <div class="scroll-story-pin">
-        <div class="story-scene">
-          <div class="story-sky"></div>
-          <div class="story-window-light"></div>
-          <div class="story-wall"></div>
-          <div class="story-floor"></div>
-          <div class="story-grid"></div>
-          <div class="story-frame story-frame-back"></div>
-          <div class="story-frame story-frame-main">
-            <div class="story-browser">
-              <span></span><span></span><span></span><b>gbmweb.com.br</b>
-            </div>
-            <div class="story-screen">
-              <small>GBM WEB / DIGITAL</small>
-              <strong>Uma presença<br><em>que chama atenção.</em></strong>
-              <div class="story-screen-line"></div>
-            </div>
-          </div>
-          <div class="story-orb">G</div>
-          <div class="story-phone">
-            <small>SUA MARCA</small>
-            <strong>Seu negócio<br>na palma.</strong>
-          </div>
-        </div>
-
-        <div class="story-copy">
-          <article class="story-step is-active" data-story-step="0">
-            <span>01 / COMEÇA AQUI</span>
-            <h2>Primeiro,<br><em>atenção.</em></h2>
-            <p>O site abre como uma experiência visual. Antes de vender, ele precisa fazer a pessoa parar.</p>
-          </article>
-          <article class="story-step" data-story-step="1">
-            <span>02 / EXPERIÊNCIA</span>
-            <h2>Depois,<br><em>interesse.</em></h2>
-            <p>Conforme você navega, a informação aparece no momento certo. Nada fica jogado na tela.</p>
-          </article>
-          <article class="story-step" data-story-step="2">
-            <span>03 / CLAREZA</span>
-            <h2>Então,<br><em>confiança.</em></h2>
-            <p>Serviços, diferenciais e provas são apresentados em uma sequência que conduz a decisão.</p>
-          </article>
-          <article class="story-step" data-story-step="3">
-            <span>04 / AÇÃO</span>
-            <h2>E por fim,<br><em>contato.</em></h2>
-            <p>Quando a pessoa já entendeu o valor, o próximo passo fica simples: falar com a empresa.</p>
-          </article>
-        </div>
-
-        <div class="story-progress"><i></i><i></i><i></i><i></i></div>
-        <div class="story-scroll-hint">ROLE PARA EXPLORAR <span>↓</span></div>
-      </div>
-    </section>
-
     <section class="section section-light" id="servicos">
       <div class="container">
         <div class="premium-services">
@@ -241,7 +187,7 @@
         </div>
 
         <div class="showcase">
-          <article class="project-card project-large reveal">
+          <article class="project-card project-large reveal" data-project="barbearia" role="button" tabindex="0" aria-label="Abrir projeto de Barbearia">
             <div class="project-visual project-salon">
               <div class="project-window">
                 <small>BARBEARIA</small>
@@ -251,18 +197,40 @@
             </div>
             <div class="project-meta"><div><small>DEMO</small><h3>Barbearia</h3></div><span>↗</span></div>
           </article>
-          <article class="project-card reveal">
+          <article class="project-card reveal" data-project="restaurante" role="button" tabindex="0" aria-label="Abrir projeto de Restaurante">
             <div class="project-visual project-food">
               <div class="food-card"><small>RESTAURANTE</small><strong>Sabor que<br>fica na memória.</strong><span>VER CARDÁPIO</span></div>
             </div>
             <div class="project-meta"><div><small>DEMO</small><h3>Restaurante</h3></div><span>↗</span></div>
           </article>
-          <article class="project-card reveal">
+          <article class="project-card reveal" data-project="petshop" role="button" tabindex="0" aria-label="Abrir projeto de Pet Shop">
             <div class="project-visual project-pet">
               <div class="pet-card"><small>PET SHOP</small><strong>Cuidado<br>de verdade.</strong><span>CONHECER</span></div>
             </div>
             <div class="project-meta"><div><small>DEMO</small><h3>Pet shop</h3></div><span>↗</span></div>
           </article>
+        </div>
+      </div>
+
+      <div class="project-modal" id="projectModal" aria-hidden="true">
+        <div class="project-modal-backdrop" data-modal-close></div>
+        <div class="project-modal-panel" role="dialog" aria-modal="true" aria-labelledby="projectModalTitle">
+          <button class="project-modal-close" type="button" aria-label="Fechar projeto" data-modal-close>×</button>
+          <div class="project-modal-preview" id="projectModalPreview"></div>
+          <div class="project-modal-content">
+            <div class="project-modal-kicker" id="projectModalKicker"></div>
+            <h2 id="projectModalTitle"></h2>
+            <p id="projectModalDescription"></p>
+            <div class="project-modal-grid">
+              <div><small>ESTRUTURA</small><strong id="projectModalStructure"></strong></div>
+              <div><small>FOCO</small><strong id="projectModalFocus"></strong></div>
+              <div><small>EXPERIÊNCIA</small><strong id="projectModalExperience"></strong></div>
+            </div>
+            <div class="project-modal-actions">
+              <a class="button button-primary" id="projectModalCta" href="#contato" data-modal-close>Quero este projeto <span>↗</span></a>
+              <button class="button button-ghost" type="button" data-modal-close>Fechar</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
