@@ -340,6 +340,7 @@ if (projectFromUrl && projectData[projectFromUrl]) {
 modalCta?.addEventListener("click", () => closeProjectModal());
 
 
+
 const reviewFormWrap = document.querySelector("#reviewFormWrap");
 const openReviewFormButton = document.querySelector("#openReviewForm");
 const closeReviewFormButton = document.querySelector("#closeReviewForm");
@@ -374,11 +375,40 @@ reviewRatingButtons.forEach((button) => {
   button.addEventListener("click", () => setReviewRating(button.dataset.rating));
 });
 
-reviewForm?.addEventListener("submit", (event) => {
+reviewForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (reviewFormStatus) {
-    reviewFormStatus.textContent = "Avaliação registrada para análise. Em breve ela poderá aparecer no site.";
+  const submit = reviewForm.querySelector("button[type=submit]");
+  if (!submit) return;
+
+  submit.disabled = true;
+  submit.textContent = "Enviando...";
+  if (reviewFormStatus) reviewFormStatus.textContent = "";
+
+  try {
+    const response = await fetch("/api/enviar-avaliacao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.fromEntries(new FormData(reviewForm)))
+    });
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Não foi possível enviar a avaliação.");
+    }
+
+    reviewForm.reset();
+    setReviewRating(5);
+    if (reviewFormStatus) {
+      reviewFormStatus.textContent = "Avaliação enviada para análise. Obrigado pelo feedback.";
+      reviewFormStatus.style.color = "#6f4e8f";
+    }
+  } catch (error) {
+    if (reviewFormStatus) {
+      reviewFormStatus.textContent = error.message || "Não foi possível enviar agora.";
+      reviewFormStatus.style.color = "#a44";
+    }
+  } finally {
+    submit.disabled = false;
+    submit.innerHTML = 'Enviar avaliação <span>↗</span>';
   }
-  reviewForm.reset();
-  setReviewRating(5);
 });
