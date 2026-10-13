@@ -4,7 +4,7 @@ import { SITE_CONFIG } from "../site-config.js";
 // links contact GBM Web using its shared, configurable commercial number.
 const phone = String(SITE_CONFIG.whatsapp || "").replace(/\D/g, "");
 const project = document.body.dataset.project || "esta demonstração";
-const quoteText = `Olá! Vi a demonstração ${project} no site da GBM Web e quero um site assim para minha empresa.`;
+const quoteText = `Olá! Vi a demonstração ${project} no site da GBM Web e quero um site assim para minha empresa`;
 document.querySelectorAll("[data-quote]").forEach((link) => {
   if (!phone) return;
   link.href = `https://wa.me/${phone}?text=${encodeURIComponent(quoteText)}`;
@@ -24,7 +24,7 @@ filters.forEach((button) => {
     });
     if (filterStatus) {
       const count = dishes.filter((dish) => !dish.hidden).length;
-      filterStatus.textContent = `${count} opções no cardápio de demonstração.`;
+      filterStatus.textContent = `${count} opções no cardápio de demonstração`;
     }
   });
 });

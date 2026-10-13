@@ -14,7 +14,7 @@ function applySiteConfig() {
     if (typeof value === "string") queryAll(selector).forEach((element) => { element.textContent = value; });
   }
   const number = String(SITE_CONFIG.whatsapp || "").replace(/\D/g, "");
-  const message = SITE_CONFIG.whatsappMessage || "Olá! Quero conversar sobre um site para minha empresa.";
+  const message = SITE_CONFIG.whatsappMessage || "Olá! Quero conversar sobre um site para minha empresa";
   const validNumber = /^\d{10,15}$/.test(number);
   queryAll("a[data-whatsapp]").forEach((link) => {
     link.href = validNumber ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : "#contato";
@@ -78,7 +78,7 @@ function initializePlanSelection() {
   const updateHint = () => {
     if (!hint) return;
     const selected = select.selectedOptions[0];
-    hint.textContent = select.value && selected ? `Seu interesse: ${selected.textContent.trim()}.` : "Você também pode escolher o plano depois de conversarmos.";
+    hint.textContent = select.value && selected ? `Seu interesse: ${selected.textContent.trim()}` : "Você também pode escolher o plano depois de conversarmos";
   };
   document.addEventListener("click", (event) => {
     const link = event.target instanceof Element ? event.target.closest("a[data-plan]") : null;
@@ -160,10 +160,10 @@ function setStatus(element, message, state) {
 }
 
 function requestErrorMessage(status, kind) {
-  if (status === 429) return "Você enviou várias solicitações. Aguarde alguns minutos e tente novamente.";
-  if (status === 400) return "Revise os campos do formulário e tente novamente.";
-  if (status === 503) return "O envio por e-mail está indisponível no momento. Você pode falar com a gente pelo WhatsApp.";
-  return kind === "review" ? "Não foi possível enviar sua avaliação agora. Tente novamente mais tarde." : "Não foi possível enviar sua mensagem agora. Tente novamente ou fale com a gente pelo WhatsApp.";
+  if (status === 429) return "Você enviou várias solicitações, aguarde alguns minutos e tente novamente";
+  if (status === 400) return "Revise os campos do formulário e tente novamente";
+  if (status === 503) return "O envio por e-mail está indisponível no momento, mas você pode falar com a gente pelo WhatsApp";
+  return kind === "review" ? "Não foi possível enviar sua avaliação agora, tente novamente mais tarde" : "Não foi possível enviar sua mensagem agora, tente novamente ou fale com a gente pelo WhatsApp";
 }
 
 function initializeForm({ selector, statusSelector, endpoint, kind, successMessage, onSuccess }) {
@@ -208,7 +208,7 @@ function initializeForm({ selector, statusSelector, endpoint, kind, successMessa
       onSuccess?.();
       setStatus(status, successMessage, "success");
     } catch (error) {
-      const message = error.name === "AbortError" ? "O envio demorou mais que o esperado. Tente novamente ou fale com a gente pelo WhatsApp." : requestErrorMessage(0, kind);
+      const message = error.name === "AbortError" ? "O envio demorou mais que o esperado, tente novamente ou fale com a gente pelo WhatsApp" : requestErrorMessage(0, kind);
       setStatus(status, message, "error");
     } finally {
       window.clearTimeout(timeout);
@@ -265,7 +265,7 @@ function initializeReview() {
     statusSelector: "#reviewFormStatus",
     endpoint: "/api/enviar-avaliacao",
     kind: "review",
-    successMessage: "Avaliação enviada para análise. Obrigado por compartilhar sua experiência.",
+    successMessage: "Avaliação enviada para análise — obrigado por compartilhar sua experiência",
     onSuccess: updateRating
   });
 }
@@ -290,7 +290,7 @@ initializeForm({
   statusSelector: "#formStatus",
   endpoint: "/api/enviar-contato",
   kind: "contact",
-  successMessage: "Mensagem enviada! Vamos entrar em contato para conversar sobre seu projeto."
+  successMessage: "Mensagem enviada! Vamos entrar em contato para conversar sobre seu projeto"
 });
 initializeReview();
 redirectLegacyProject();
