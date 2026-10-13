@@ -10,9 +10,42 @@ Base comercial para criação e clonagem de sites de clientes.
 - GSAP 3.15 + ScrollTrigger
 - HTML/CSS/JavaScript
 
+## Desenvolvimento
+
+```bash
+npm install --package-lock=false
+npm start
+```
+
+Use Node.js 20 ou mais recente. O servidor usa a porta definida em `PORT`
+(padrão: 10000). `GET /api/health` confirma a inicialização.
+`npm run check` verifica a sintaxe do servidor e da aplicação principal.
+
+## Visual e demonstrações
+
+A página usa fontes locais e os bundles de GSAP/ScrollTrigger do pacote
+instalado, servidos em `/vendor/gsap/`. Não depende de Google Fonts ou de CDN
+para funcionar. A direção de movimento segue as
+[skills oficiais do GSAP](https://github.com/greensock/gsap-skills): timelines,
+ScrollTrigger, animações por transform e respeito a `prefers-reduced-motion`.
+
+`public/animations.js` separa o movimento das funções essenciais de navegação
+e contato em `public/app.js`. O conteúdo continua visível sem animações.
+
+As três páginas em `public/demos/` apresentam marcas fictícias: Época
+Barbearia, Terra & Mesa e Pata Club. Seus botões de orçamento levam à GBM Web;
+não recebem agendamentos para negócios reais.
+
+As fontes Manrope e DM Sans estão em `public/assets/fonts/`, com suas
+respectivas licenças OFL. As ilustrações SVG são parte do projeto.
+
 ## Arquitetura
 
 O arquivo `public/site-config.js` concentra os dados que mudam de cliente para cliente.
+
+Marca, localização, planos e contato pelo WhatsApp são configurados nesse
+arquivo. `whatsapp` usa somente dígitos, com código do país e DDD; o número
+comercial atual é `5511958974750`. `whatsappMessage` define a mensagem inicial.
 
 Para criar um novo site a partir desta base, altere a configuração e substitua os conteúdos visuais necessários sem acoplar o projeto ao GBM Finance.
 

@@ -1,12 +1,13 @@
 export const SITE_CONFIG = {
   brand: "GBM Web",
   descriptor: "Sites para Empresas",
-  title: "Sites que fazem sua empresa parecer grande.",
-  subtitle: "Design profissional, tecnologia moderna e uma presença digital pensada para transformar visitantes em clientes.",
+  title: "Seu negócio. Uma presença à altura.",
+  subtitle: "Design com personalidade e sites feitos para transformar quem encontra sua empresa em quem quer falar com você.",
   email: "",
-  whatsapp: "",
+  whatsapp: "5511958974750",
+  whatsappMessage: "Olá, Giovanni! Vim pelo site da GBM Web e quero conversar sobre um site para minha empresa.",
   instagram: "",
-  location: "São Paulo — SP",
+  location: "Cidade Líder · São Paulo",
   plans: [
     {
       name: "Essencial",
@@ -17,7 +18,8 @@ export const SITE_CONFIG = {
         "Página profissional responsiva",
         "Apresentação da empresa",
         "Serviços ou produtos",
-        "Botão de contato",
+        "Contato pelo WhatsApp",
+        "Versão para celular",
         "Publicação do site"
       ]
     },
@@ -29,10 +31,10 @@ export const SITE_CONFIG = {
       features: [
         "Tudo do Essencial",
         "Galeria de fotos",
-        "Formulário de contato",
+        "Formulário de orçamento",
         "Google Maps",
         "SEO inicial",
-        "Animações GSAP"
+        "Animações e redes sociais"
       ]
     },
     {

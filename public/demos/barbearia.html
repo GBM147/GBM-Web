@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#23221f">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Uma demonstração de site para barbearia criada pela GBM Web. Época é uma marca fictícia.">
+  <title>Época Barbearia — Demonstração GBM Web</title>
+  <link rel="stylesheet" href="/demos/demo.css">
+  <script src="/vendor/gsap/gsap.min.js" defer></script>
+  <script type="module" src="/demos/demo.js"></script>
+</head>
+<body class="barber" data-project="Época Barbearia">
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <div class="demo-notice"><span><strong>Demonstração GBM Web</strong><span aria-hidden="true"> · </span>Marca fictícia</span><a href="/">← Voltar à GBM Web</a></div>
+  <header class="site-header shell">
+    <a class="brand" href="/demos/barbearia.html" aria-label="Época Barbearia, início">época<span class="sr-only"> Barbearia</span><small>Barbearia &amp; estilo</small></a>
+    <nav class="nav" aria-label="Menu principal">
+      <a href="#servicos">Serviços</a>
+      <a class="desktop-link" href="#conceito">Nosso espaço</a>
+      <a class="nav-cta" href="/#contato" data-quote>Quero um site assim <svg class="arrow-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 13 13 3M3 3h10v10"/></svg></a>
+    </nav>
+  </header>
+  <main id="conteudo">
+    <section class="hero shell" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Um novo clássico</p>
+        <h1 id="hero-title">Bom corte.<br>Boa conversa.<br><em>Seu estilo.</em></h1>
+        <p class="hero-description">Tradição no cuidado. Personalidade no resultado. Um lugar para desacelerar e sair com o visual em dia.</p>
+        <div class="hero-actions"><a class="button" href="#servicos">Conheça os serviços</a><a class="text-link" href="#conceito">O conceito Época</a></div>
+        <p class="hero-note">Design demonstrativo para uma barbearia de bairro</p>
+      </div>
+      <div class="hero-art" aria-label="Ilustração autoral de uma tesoura de barbeiro, com moldura em arco e detalhes clássicos" role="img">
+        <svg viewBox="0 0 580 610" aria-hidden="true" focusable="false">
+          <defs>
+            <clipPath id="arch-clip"><path d="M25 585V290a265 265 0 0 1 530 0v295Z"/></clipPath>
+            <linearGradient id="blade" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff9eb"/><stop offset=".52" stop-color="#d2c9b6"/><stop offset="1" stop-color="#f1e9d9"/></linearGradient>
+          </defs>
+          <path d="M25 585V290a265 265 0 0 1 530 0v295Z" fill="#b45a3b"/>
+          <g clip-path="url(#arch-clip)">
+            <circle cx="290" cy="287" r="226" fill="none" stroke="#d8a58a" stroke-width="1"/>
+            <circle cx="290" cy="287" r="210" fill="none" stroke="#d8a58a" stroke-width="1"/>
+            <path d="M290 39v36m0 425v36M41 287h36m425 0h36M114 111l25 25m302 302 25 25m0-352-25 25M139 438l-25 25" stroke="#e7baa2" stroke-width="1.5"/>
+            <circle cx="290" cy="287" r="176" fill="#23221f"/>
+            <path d="m135 241 16-16m-6 30 21-21m-6 30 26-26m-6 30 27-27m-6 30 27-27" stroke="#e1d7c4" stroke-width="2" opacity=".25"/>
+            <g transform="rotate(-24 290 295)">
+              <path d="M280 304 222 128c-5-17-3-34 6-46l71 216Z" fill="url(#blade)" stroke="#23221f" stroke-width="3"/>
+              <path d="m299 305 57-177c5-17 3-34-6-46l-71 216Z" fill="url(#blade)" stroke="#23221f" stroke-width="3"/>
+              <path d="m281 301-37 64m54-64 37 64" stroke="#e5ddcb" stroke-width="13"/>
+              <ellipse cx="224" cy="396" rx="34" ry="45" transform="rotate(24 224 396)" fill="none" stroke="#e5ddcb" stroke-width="13"/>
+              <ellipse cx="354" cy="396" rx="34" ry="45" transform="rotate(-24 354 396)" fill="none" stroke="#e5ddcb" stroke-width="13"/>
+              <path d="M385 418c8 12 18 18 30 16" fill="none" stroke="#e5ddcb" stroke-width="9" stroke-linecap="round"/>
+              <circle cx="290" cy="304" r="13" fill="#b45a3b" stroke="#f4eedf" stroke-width="3"/>
+              <path d="m284 304h12" stroke="#f4eedf" stroke-width="2"/>
+              <path d="m233 103 52 193m61-193-53 193" stroke="#a29884" stroke-width="1"/>
+            </g>
+            <path d="M69 537H511" stroke="#e7baa2"/>
+            <text x="290" y="562" text-anchor="middle" fill="#f4eedf" font-family="Georgia,serif" font-size="15" letter-spacing="6">FEITO PARA VOCÊ</text>
+            <path d="M80 590V476m420 114V476" stroke="#e7baa2" stroke-width="1"/>
+          </g>
+          <circle cx="465" cy="70" r="51" fill="#f4eedf" stroke="#23221f" stroke-width="1"/>
+          <circle cx="465" cy="70" r="43" fill="none" stroke="#23221f" stroke-width=".7"/>
+          <text x="465" y="87" text-anchor="middle" fill="#23221f" font-family="Georgia,serif" font-size="52" font-style="italic">é</text>
+        </svg>
+        <div class="art-caption"><span>Precisão nos detalhes</span><span>Época · Conceito visual</span></div>
+      </div>
+    </section>
+    <div class="service-strip shell" aria-label="Diferenciais do conceito"><span>Corte com personalidade</span><span>Barba bem cuidada</span><span>Tempo para você</span></div>
+    <section class="section shell" id="servicos" aria-labelledby="services-title">
+      <div class="section-heading" data-reveal>
+        <div><p class="eyebrow">O cuidado que faz diferença</p><h2 id="services-title">Clássico no jeito.<br><em>Único no resultado.</em></h2></div>
+        <p>Um menu simples, fácil de consultar e com todos os detalhes que seu cliente precisa.</p>
+      </div>
+      <div class="services-grid">
+        <article class="service-card" data-reveal><span class="number">01.</span><h3>Corte de cabelo</h3><p>Do clássico ao contemporâneo, um corte pensado para a sua rotina e o seu estilo.</p><div class="price-row"><span>45 min · Valor ilustrativo</span><strong>R$ 45</strong></div></article>
+        <article class="service-card" data-reveal><span class="number">02.</span><h3>Barba &amp; acabamento</h3><p>Desenho, toalha quente e acabamento cuidadoso. Atenção a cada detalhe.</p><div class="price-row"><span>30 min · Valor ilustrativo</span><strong>R$ 35</strong></div></article>
+        <article class="service-card" data-reveal><span class="number">03.</span><h3>O cuidado completo</h3><p>Cabelo e barba na mesma experiência. Um momento reservado para renovar o visual.</p><div class="price-row"><span>75 min · Valor ilustrativo</span><strong>R$ 70</strong></div></article>
+      </div>
+      <p class="example-note">Serviços e preços fictícios, usados somente para demonstrar a apresentação de uma barbearia.</p>
+    </section>
+    <section class="story shell" id="conceito" aria-labelledby="story-title" data-reveal>
+      <div class="story-art" aria-hidden="true">
+        <svg viewBox="0 0 350 400" focusable="false">
+          <path d="M28 370V168a147 147 0 0 1 294 0v202Z" fill="#23221f"/>
+          <path d="M42 355V168a133 133 0 0 1 266 0v187Z" fill="none" stroke="#afa28b"/>
+          <text x="175" y="216" font-family="Georgia,serif" font-size="155" text-anchor="middle" fill="#f4eedf" font-style="italic">é</text>
+          <path d="M120 245h110m-80 12h50" stroke="#b45a3b" stroke-width="2"/>
+          <text x="175" y="288" font-family="Arial,sans-serif" text-anchor="middle" font-size="11" letter-spacing="5" fill="#f4eedf">ÉPOCA</text>
+          <text x="175" y="311" font-family="Arial,sans-serif" text-anchor="middle" font-size="7" letter-spacing="3" fill="#b9ac96">BARBEARIA &amp; ESTILO</text>
+          <path d="M7 390h336" stroke="#23221f"/>
+        </svg>
+      </div>
+      <div><p class="eyebrow">Mais que um corte</p><h2 id="story-title">Tem coisas que<br>o tempo <em>melhora.</em></h2><p>Uma boa conversa. Um ritual bem feito. O cuidado de quem conhece seu estilo. O conceito Época combina o aconchego da barbearia tradicional com uma identidade atual.</p><p>Assim poderia ser o espaço da sua marca na internet: acolhedor, organizado e pronto para apresentar o que você faz de melhor.</p><div class="story-label"><span>é</span>Uma identidade para chamar de sua.</div></div>
+    </section>
+    <section class="section shell" aria-labelledby="details-title">
+      <p class="eyebrow">Informação fácil de encontrar</p>
+      <div class="section-heading"><h2 id="details-title">Tudo no lugar.<br>Até o próximo corte.</h2><p>Horários, localização e contato teriam os dados reais da sua empresa no projeto final.</p></div>
+      <div class="detail-grid" data-reveal><div><h3>Agenda do exemplo</h3><p>Terça a sexta · 10h às 20h<br>Sábado · 9h às 18h</p></div><div><h3>Feito para o bairro</h3><p>Seu endereço e como chegar<br>entrariam aqui, com mapa e rota.</p></div><div><h3>Contato descomplicado</h3><p>Um botão direto para o seu WhatsApp,<br>sem criar contas ou instalar aplicativos.</p></div></div>
+    </section>
+    <section class="final-cta shell" aria-labelledby="quote-title" data-reveal><div><p class="eyebrow">Do conceito para o seu negócio</p><h2 id="quote-title">Sua barbearia.<br>Essa presença.</h2><p>Gostou do visual? A GBM Web adapta nome, cores, serviços e contato para criar o site da sua empresa.</p></div><a class="button" href="/#contato" data-quote>Quero um site assim</a></section>
+  </main>
+  <footer class="site-footer shell"><p>Época é uma marca fictícia. Esta é uma demonstração da GBM Web, sem reservas ou serviços disponíveis.</p><nav class="footer-links" aria-label="Outras demonstrações"><a href="/demos/restaurante.html">Ver restaurante</a><a href="/">GBM Web <svg class="arrow-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 13 13 3M3 3h10v10"/></svg></a></nav></footer>
+</body>
+</html>

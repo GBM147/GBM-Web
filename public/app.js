@@ -1,414 +1,306 @@
 import { SITE_CONFIG } from "./site-config.js";
-import { gsap } from "https://cdn.jsdelivr.net/npm/gsap@3.15.0/index.js";
-import { ScrollTrigger } from "https://cdn.jsdelivr.net/npm/gsap@3.15.0/ScrollTrigger.js";
+import { initAnimations } from "./animations.js";
 
-gsap.registerPlugin(ScrollTrigger);
+const query = (selector) => document.querySelector(selector);
+const queryAll = (selector) => [...document.querySelectorAll(selector)];
+const notifyLayoutChange = () => document.dispatchEvent(new Event("gbm:layoutchange"));
 
-const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-document.querySelectorAll("[data-brand]").forEach((el) => el.textContent = SITE_CONFIG.brand);
-document.querySelectorAll("[data-descriptor]").forEach((el) => el.textContent = SITE_CONFIG.descriptor);
-document.querySelectorAll("[data-location]").forEach((el) => el.textContent = SITE_CONFIG.location);
-
-const pricingGrid = document.querySelector("#pricingGrid");
-pricingGrid.innerHTML = SITE_CONFIG.plans.map((plan) => `
-  <article class="price-card ${plan.featured ? "featured" : ""} reveal">
-    <span class="price-tag">${plan.featured ? "Mais escolhido" : "Plano"}</span>
-    <h3>${plan.name}</h3>
-    <p class="price-desc">${plan.description}</p>
-    <div class="price-value"><strong>${plan.price}</strong><small>à vista*</small></div>
-    <ul class="price-features">
-      ${plan.features.map((feature) => `<li>${feature}</li>`).join("")}
-    </ul>
-    <a class="button button-primary price-button" href="#contato" data-plan="${plan.name}">Escolher ${plan.name} <span>↗</span></a>
-  </article>
-`).join("");
-
-document.querySelectorAll("[data-plan]").forEach((link) => {
-  link.addEventListener("click", () => {
-    const select = document.querySelector('select[name="plano"]');
-    const planName = link.dataset.plan;
-    if (select && planName) {
-      const option = [...select.options].find((item) => item.value.startsWith(planName));
-      if (option) select.value = option.value;
+function applySiteConfig() {
+  for (const [selector, value] of [
+    ["[data-brand]", SITE_CONFIG.brand],
+    ["[data-descriptor]", SITE_CONFIG.descriptor],
+    ["[data-location]", SITE_CONFIG.location]
+  ]) {
+    if (typeof value === "string") queryAll(selector).forEach((element) => { element.textContent = value; });
+  }
+  const number = String(SITE_CONFIG.whatsapp || "").replace(/\D/g, "");
+  const message = SITE_CONFIG.whatsappMessage || "Olá! Quero conversar sobre um site para minha empresa.";
+  const validNumber = /^\d{10,15}$/.test(number);
+  queryAll("a[data-whatsapp]").forEach((link) => {
+    link.href = validNumber ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : "#contato";
+    if (validNumber) {
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+    } else {
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
     }
   });
-});
-
-const menuButton = document.querySelector(".menu-toggle");
-const mobileMenu = document.querySelector("#mobileMenu");
-
-function closeMenu() {
-  document.body.classList.remove("menu-open");
-  menuButton.setAttribute("aria-expanded", "false");
-  gsap.to(mobileMenu, { autoAlpha: 0, y: -10, duration: .25, ease: "power2.out" });
+  queryAll("[data-year]").forEach((element) => { element.textContent = String(new Date().getFullYear()); });
 }
 
-menuButton.addEventListener("click", () => {
-  const isOpen = menuButton.getAttribute("aria-expanded") === "true";
-  if (isOpen) {
-    closeMenu();
-    return;
-  }
-  document.body.classList.add("menu-open");
-  menuButton.setAttribute("aria-expanded", "true");
-  gsap.to(mobileMenu, { autoAlpha: 1, y: 0, duration: .3, ease: "power3.out" });
-});
+function createNode(tagName, className, text) {
+  const node = document.createElement(tagName);
+  if (className) node.className = className;
+  if (typeof text === "string") node.textContent = text;
+  return node;
+}
 
-mobileMenu.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
-
-const contactForm = document.querySelector("#contactForm");
-const formStatus = document.querySelector("#formStatus");
-
-contactForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const submit = contactForm.querySelector("button[type=submit]");
-  submit.disabled = true;
-  submit.innerHTML = "Enviando...";
-
-  try {
-    const response = await fetch("/api/enviar-contato", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(Object.fromEntries(new FormData(contactForm)))
-    });
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || "Não foi possível enviar.");
-    }
-
-    contactForm.reset();
-    formStatus.textContent = "Mensagem enviada. Vou entrar em contato em breve.";
-    formStatus.style.color = "#b79cff";
-  } catch (error) {
-    formStatus.textContent = error.message || "Não foi possível enviar agora.";
-    formStatus.style.color = "#ffaaa8";
-  } finally {
-    submit.disabled = false;
-    submit.innerHTML = 'Enviar mensagem <span>↗</span>';
-  }
-});
-
-if (!reducedMotion) {
-  const intro = gsap.timeline({
-    defaults: { ease: "power3.out" }
+function renderPlans() {
+  const grid = query("#pricingGrid");
+  if (!grid || !Array.isArray(SITE_CONFIG.plans) || !SITE_CONFIG.plans.length) return;
+  const fragment = document.createDocumentFragment();
+  SITE_CONFIG.plans.forEach((plan) => {
+    const card = createNode("article", `price-card${plan.featured ? " featured" : ""}`);
+    card.dataset.reveal = "";
+    card.append(
+      createNode("span", "price-tag", plan.featured ? "Recomendado" : "Plano"),
+      createNode("h3", "", plan.name),
+      createNode("p", "price-desc", plan.description)
+    );
+    const price = createNode("div", "price-value");
+    price.append(createNode("strong", "", plan.price), createNode("small", "", "por projeto"));
+    card.append(price);
+    const features = createNode("ul", "price-features");
+    (plan.features || []).forEach((feature) => { features.append(createNode("li", "", feature)); });
+    card.append(features);
+    const link = createNode("a", "button button-primary price-button", `Escolher ${plan.name} `);
+    link.href = "#contato";
+    link.dataset.plan = plan.name;
+    const arrow = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    arrow.setAttribute("class", "arrow");
+    arrow.setAttribute("viewBox", "0 0 24 24");
+    arrow.setAttribute("aria-hidden", "true");
+    const arrowUse = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    arrowUse.setAttribute("href", "#icon-arrow");
+    arrow.append(arrowUse);
+    link.append(arrow);
+    card.append(link);
+    fragment.append(card);
   });
+  grid.replaceChildren(fragment);
+}
 
-  intro
-    .from(".site-header", { y: -22, autoAlpha: 0, duration: .6 })
-    .from(".hero .eyebrow", { y: 24, autoAlpha: 0, duration: .65 }, "-=.25")
-    .from(".hero-line", { yPercent: 110, autoAlpha: 0, duration: .9, stagger: .11, ease: "power4.out" }, "-=.3")
-    .from(".hero-subtitle", { y: 24, autoAlpha: 0, duration: .7 }, "-=.55")
-    .from(".hero-actions", { y: 24, autoAlpha: 0, duration: .65 }, "-=.45")
-    .from(".hero-proof", { y: 18, autoAlpha: 0, duration: .55 }, "-=.35")
-    .from(".browser-window", { y: 45, rotation: 8, scale: .96, autoAlpha: 0, duration: 1.15, ease: "power3.out" }, "-=.8")
-    .from(".floating-tag", { y: 22, scale: .88, autoAlpha: 0, duration: .55, stagger: .12 }, "-=.75");
-
-  gsap.to(".browser-window", {
-    y: -10,
-    duration: 3.2,
-    repeat: -1,
-    yoyo: true,
-    ease: "sine.inOut"
-  });
-
-  gsap.to(".orb-one", {
-    x: 22,
-    y: 16,
-    duration: 5,
-    repeat: -1,
-    yoyo: true,
-    ease: "sine.inOut"
-  });
-
-  gsap.to(".orb-two", {
-    x: -18,
-    y: -12,
-    duration: 6,
-    repeat: -1,
-    yoyo: true,
-    ease: "sine.inOut"
-  });
-
-  gsap.to(".marquee-track", {
-    xPercent: -18,
-    ease: "none",
-    scrollTrigger: {
-      trigger: ".marquee-band",
-      start: "top bottom",
-      end: "bottom top",
-      scrub: true
+function initializePlanSelection() {
+  const select = query('select[name="plano"]');
+  const hint = query("#contactPlanHint");
+  if (!select) return;
+  const updateHint = () => {
+    if (!hint) return;
+    const selected = select.selectedOptions[0];
+    hint.textContent = select.value && selected ? `Seu interesse: ${selected.textContent.trim()}.` : "Você também pode escolher o plano depois de conversarmos.";
+  };
+  document.addEventListener("click", (event) => {
+    const link = event.target instanceof Element ? event.target.closest("a[data-plan]") : null;
+    if (!link) return;
+    const option = [...select.options].find((item) => item.value === link.dataset.plan || item.value.startsWith(`${link.dataset.plan} `));
+    if (option) {
+      select.value = option.value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
     }
   });
+  select.addEventListener("change", updateHint);
+  select.form?.addEventListener("reset", () => { queueMicrotask(updateHint); });
+  updateHint();
+}
 
-  gsap.utils.toArray(".reveal").forEach((element) => {
-    if (element.closest(".hero")) return;
-    gsap.fromTo(element,
-      { y: 35, autoAlpha: 0 },
-      {
-        y: 0,
-        autoAlpha: 1,
-        duration: .8,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: element,
-          start: "top 86%",
-          toggleActions: "play none none reverse"
-        }
+function initializeMenu() {
+  const button = query(".menu-toggle");
+  const menu = query("#mobileMenu");
+  if (!button || !menu) return;
+  const desktop = window.matchMedia("(min-width: 900px)");
+  button.setAttribute("aria-controls", menu.id);
+  const close = ({ restoreFocus = false, desktopFocus = false } = {}) => {
+    const focusedLink = menu.contains(document.activeElement) ? document.activeElement : null;
+    const focusInNavigation = focusedLink || document.activeElement === button;
+    menu.hidden = true;
+    menu.setAttribute("aria-hidden", "true");
+    button.setAttribute("aria-expanded", "false");
+    button.setAttribute("aria-label", "Abrir menu");
+    document.body.classList.remove("menu-open");
+    if (desktopFocus && focusInNavigation) {
+      const href = focusedLink?.getAttribute("href");
+      const replacement = queryAll(".site-header nav:not(#mobileMenu) a").find((link) => link.getAttribute("href") === href);
+      (replacement || query(".site-header a"))?.focus({ preventScroll: true });
+    } else if (restoreFocus) button.focus({ preventScroll: true });
+  };
+  close();
+  button.addEventListener("click", () => {
+    if (!menu.hidden) {
+      close({ restoreFocus: true });
+      return;
+    }
+    menu.hidden = false;
+    menu.setAttribute("aria-hidden", "false");
+    button.setAttribute("aria-expanded", "true");
+    button.setAttribute("aria-label", "Fechar menu");
+    document.body.classList.add("menu-open");
+  });
+  menu.addEventListener("click", (event) => {
+    const link = event.target instanceof Element ? event.target.closest("a") : null;
+    if (!link) return;
+    const href = link.getAttribute("href") || "";
+    close({ restoreFocus: !href.startsWith("#") });
+    if (href.startsWith("#") && href.length > 1) {
+      const target = document.getElementById(href.slice(1));
+      if (target) {
+        if (!target.hasAttribute("tabindex")) target.tabIndex = -1;
+        requestAnimationFrame(() => { target.focus({ preventScroll: true }); });
       }
-    );
+    }
   });
-
-  gsap.utils.toArray(".service-card").forEach((card, index) => {
-    gsap.fromTo(card,
-      { y: 28, scale: .985 },
-      {
-        y: 0,
-        scale: 1,
-        duration: .8,
-        delay: index * .04,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: card,
-          start: "top 88%",
-          toggleActions: "play none none reverse"
-        }
-      }
-    );
-  });
-
-  gsap.utils.toArray(".process-item").forEach((item) => {
-    const number = item.querySelector("span");
-    gsap.from(number, {
-      x: -14,
-      autoAlpha: 0,
-      duration: .55,
-      scrollTrigger: { trigger: item, start: "top 88%", toggleActions: "play none none reverse" }
-    });
-  });
-
-  document.querySelectorAll(".magnetic").forEach((button) => {
-    button.addEventListener("pointermove", (event) => {
-      const rect = button.getBoundingClientRect();
-      const x = event.clientX - rect.left - rect.width / 2;
-      const y = event.clientY - rect.top - rect.height / 2;
-      gsap.to(button, { x: x * .08, y: y * .12, duration: .35, ease: "power3.out" });
-    });
-    button.addEventListener("pointerleave", () => {
-      gsap.to(button, { x: 0, y: 0, duration: .5, ease: "elastic.out(1,.5)" });
-    });
-  });
-}
-
-window.addEventListener("load", () => ScrollTrigger.refresh());
-
-
-const projectData = {
-  barbearia: {
-    kicker: "DEMO / BARBEARIA",
-    title: "Seu estilo começa aqui.",
-    description: "Uma experiência digital pensada para transformar a busca por um corte em agendamento. Visual marcante, serviços organizados e contato imediato.",
-    structure: "Serviços + horários",
-    focus: "Agendamento",
-    experience: "Mobile first",
-    theme: "modal-barbearia",
-    cta: "Quero este projeto"
-  },
-  petshop: {
-    kicker: "DEMO / PET SHOP",
-    title: "Cuidado de verdade.",
-    description: "Um site acolhedor para apresentar produtos, serviços e atendimento, passando confiança para quem procura cuidar melhor do seu pet.",
-    structure: "Serviços + contato",
-    focus: "Confiança",
-    experience: "Navegação simples",
-    theme: "modal-petshop",
-    cta: "Quero este projeto"
-  },
-  restaurante: {
-    kicker: "DEMO / RESTAURANTE",
-    title: "Sabor que fica na memória.",
-    description: "Uma presença digital criada para destacar o cardápio, abrir o caminho até o restaurante e facilitar pedidos e reservas.",
-    structure: "Cardápio + localização",
-    focus: "Pedidos",
-    experience: "Rápida e visual",
-    theme: "modal-restaurante",
-    cta: "Quero este projeto"
-  }
-};
-
-const projectModal = document.querySelector("#projectModal");
-const modalPreview = document.querySelector("#projectModalPreview");
-const modalKicker = document.querySelector("#projectModalKicker");
-const modalTitle = document.querySelector("#projectModalTitle");
-const modalDescription = document.querySelector("#projectModalDescription");
-const modalStructure = document.querySelector("#projectModalStructure");
-const modalFocus = document.querySelector("#projectModalFocus");
-const modalExperience = document.querySelector("#projectModalExperience");
-const modalCta = document.querySelector("#projectModalCta");
-
-function openProjectModal(projectKey) {
-  const project = projectData[projectKey];
-  if (!project || !projectModal) return;
-
-  modalKicker.textContent = project.kicker;
-  modalTitle.textContent = project.title;
-  modalDescription.textContent = project.description;
-  modalStructure.textContent = project.structure;
-  modalFocus.textContent = project.focus;
-  modalExperience.textContent = project.experience;
-  modalCta.textContent = project.cta;
-  const arrow = document.createElement("span");
-  arrow.textContent = "↗";
-  modalCta.appendChild(arrow);
-
-  modalPreview.className = "project-modal-preview " + project.theme;
-  modalPreview.innerHTML = `
-    <div class="modal-preview-window">
-      <div class="modal-browser"><i></i><i></i><i></i><b>${projectKey}.gbmweb.com.br</b></div>
-      <div class="modal-preview-screen">
-        <small>${project.kicker.replace("DEMO / ","")}</small>
-        <strong>${project.title}</strong>
-        <span>CONHECER PROJETO ↗</span>
-      </div>
-    </div>
-  `;
-
-  projectModal.classList.add("is-open");
-  projectModal.setAttribute("aria-hidden", "false");
-  document.body.classList.add("modal-open");
-
-  if (!reducedMotion) {
-    gsap.fromTo(".project-modal-panel",
-      { y: 30, scale: .97, autoAlpha: 0 },
-      { y: 0, scale: 1, autoAlpha: 1, duration: .45, ease: "power3.out" }
-    );
-    gsap.fromTo("#projectModalPreview .modal-preview-window",
-      { rotate: -6, scale: .94 },
-      { rotate: -2, scale: 1, duration: .6, ease: "power3.out" }
-    );
-  }
-  setTimeout(() => document.querySelector(".project-modal-close")?.focus(), 30);
-}
-
-function closeProjectModal() {
-  if (!projectModal) return;
-  if (!reducedMotion) {
-    gsap.to(".project-modal-panel", {
-      y: 20, scale: .98, autoAlpha: 0, duration: .22, ease: "power2.in",
-      onComplete: finishCloseProjectModal
-    });
-  } else {
-    finishCloseProjectModal();
-  }
-}
-
-function finishCloseProjectModal() {
-  projectModal.classList.remove("is-open");
-  projectModal.setAttribute("aria-hidden", "true");
-  document.body.classList.remove("modal-open");
-}
-
-document.querySelectorAll(".project-card[data-project]").forEach((card) => {
-  const activate = () => openProjectModal(card.dataset.project);
-  card.addEventListener("click", activate);
-  card.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !menu.hidden) {
       event.preventDefault();
-      activate();
+      close({ restoreFocus: true });
     }
   });
-});
+  document.addEventListener("focusin", (event) => {
+    if (!menu.hidden && event.target !== button && !menu.contains(event.target)) close();
+  });
+  desktop.addEventListener("change", (event) => { if (event.matches) close({ desktopFocus: true }); });
+}
 
-document.querySelectorAll("[data-modal-close]").forEach((element) => {
-  element.addEventListener("click", (event) => {
-    if (element.tagName === "A" && element.getAttribute("href") === "#contato") return;
+function setStatus(element, message, state) {
+  if (!element) return;
+  element.textContent = message;
+  element.dataset.state = state;
+  element.classList.toggle("is-success", state === "success");
+  element.classList.toggle("is-error", state === "error");
+}
+
+function requestErrorMessage(status, kind) {
+  if (status === 429) return "Você enviou várias solicitações. Aguarde alguns minutos e tente novamente.";
+  if (status === 400) return "Revise os campos do formulário e tente novamente.";
+  if (status === 503) return "O envio por e-mail está indisponível no momento. Você pode falar com a gente pelo WhatsApp.";
+  return kind === "review" ? "Não foi possível enviar sua avaliação agora. Tente novamente mais tarde." : "Não foi possível enviar sua mensagem agora. Tente novamente ou fale com a gente pelo WhatsApp.";
+}
+
+function initializeForm({ selector, statusSelector, endpoint, kind, successMessage, onSuccess }) {
+  const form = query(selector);
+  const status = query(statusSelector);
+  if (!form) return;
+  let sending = false;
+  const submit = form.querySelector('button[type="submit"], input[type="submit"]');
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    closeProjectModal();
+    if (sending || !form.reportValidity()) return;
+    const body = JSON.stringify(Object.fromEntries(new FormData(form)));
+    const originalNodes = submit instanceof HTMLButtonElement ? [...submit.childNodes] : null;
+    const originalValue = submit instanceof HTMLInputElement ? submit.value : null;
+    const originalDisabled = submit?.disabled || false;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => { controller.abort(); }, 20000);
+    sending = true;
+    form.setAttribute("aria-busy", "true");
+    if (submit) {
+      submit.disabled = true;
+      submit.setAttribute("aria-busy", "true");
+      if (originalNodes) submit.textContent = "Enviando…";
+      else if (originalValue !== null) submit.value = "Enviando…";
+    }
+    setStatus(status, kind === "review" ? "Enviando sua avaliação…" : "Enviando sua mensagem…", "pending");
+    try {
+      const configuredAction = new URL(form.getAttribute("action") || endpoint, window.location.href);
+      const action = configuredAction.origin === window.location.origin ? configuredAction.pathname : endpoint;
+      const response = await fetch(action, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body,
+        signal: controller.signal
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok || data?.success !== true) {
+        setStatus(status, requestErrorMessage(response.status, kind), "error");
+        return;
+      }
+      form.reset();
+      onSuccess?.();
+      setStatus(status, successMessage, "success");
+    } catch (error) {
+      const message = error.name === "AbortError" ? "O envio demorou mais que o esperado. Tente novamente ou fale com a gente pelo WhatsApp." : requestErrorMessage(0, kind);
+      setStatus(status, message, "error");
+    } finally {
+      window.clearTimeout(timeout);
+      sending = false;
+      form.removeAttribute("aria-busy");
+      if (submit) {
+        submit.disabled = originalDisabled;
+        submit.removeAttribute("aria-busy");
+        if (originalNodes) submit.replaceChildren(...originalNodes);
+        else if (originalValue !== null) submit.value = originalValue;
+      }
+      notifyLayoutChange();
+    }
   });
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && projectModal?.classList.contains("is-open")) closeProjectModal();
-});
-
-const projectFromUrl = new URLSearchParams(window.location.search).get("projeto");
-if (projectFromUrl && projectData[projectFromUrl]) {
-  window.addEventListener("load", () => openProjectModal(projectFromUrl));
 }
 
-modalCta?.addEventListener("click", () => closeProjectModal());
-
-
-
-const reviewFormWrap = document.querySelector("#reviewFormWrap");
-const openReviewFormButton = document.querySelector("#openReviewForm");
-const closeReviewFormButton = document.querySelector("#closeReviewForm");
-const reviewRatingInput = document.querySelector("#reviewRatingInput");
-const reviewRatingButtons = [...document.querySelectorAll(".review-rating button")];
-const reviewForm = document.querySelector("#reviewForm");
-const reviewFormStatus = document.querySelector("#reviewFormStatus");
-
-function setReviewRating(rating) {
-  const value = String(Math.max(1, Math.min(5, Number(rating) || 5)));
-  if (reviewRatingInput) reviewRatingInput.value = value;
-  reviewRatingButtons.forEach((button) => {
-    button.classList.toggle("is-selected", Number(button.dataset.rating) <= Number(value));
-  });
-}
-
-setReviewRating(5);
-
-openReviewFormButton?.addEventListener("click", () => {
-  reviewFormWrap?.classList.add("is-open");
-  reviewFormWrap?.setAttribute("aria-hidden", "false");
-  setTimeout(() => reviewForm?.querySelector("input[name=nome]")?.focus(), 30);
-});
-
-closeReviewFormButton?.addEventListener("click", () => {
-  reviewFormWrap?.classList.remove("is-open");
-  reviewFormWrap?.setAttribute("aria-hidden", "true");
-});
-
-reviewRatingButtons.forEach((button) => {
-  button.addEventListener("mouseenter", () => setReviewRating(button.dataset.rating));
-  button.addEventListener("click", () => setReviewRating(button.dataset.rating));
-});
-
-reviewForm?.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const submit = reviewForm.querySelector("button[type=submit]");
-  if (!submit) return;
-
-  submit.disabled = true;
-  submit.textContent = "Enviando...";
-  if (reviewFormStatus) reviewFormStatus.textContent = "";
-
-  try {
-    const response = await fetch("/api/enviar-avaliacao", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(Object.fromEntries(new FormData(reviewForm)))
+function initializeReview() {
+  const wrapper = query("#reviewFormWrap");
+  const openButton = query("#openReviewForm");
+  const closeButton = query("#closeReviewForm");
+  const form = query("#reviewForm");
+  if (!wrapper || !openButton || !form) return;
+  const setOpen = (open) => {
+    const hadFocus = wrapper.contains(document.activeElement);
+    wrapper.hidden = !open;
+    wrapper.setAttribute("aria-hidden", String(!open));
+    openButton.setAttribute("aria-expanded", String(open));
+    openButton.setAttribute("aria-controls", wrapper.id);
+    if (open) form.querySelector('input[name="nome"]')?.focus({ preventScroll: true });
+    else if (hadFocus) openButton.focus({ preventScroll: true });
+    notifyLayoutChange();
+  };
+  const updateRating = () => {
+    const selected = Number(form.querySelector('input[name="nota"]:checked')?.value || 0);
+    form.querySelectorAll(".review-rating label").forEach((label) => {
+      const input = label.control || label.querySelector('input[name="nota"]');
+      label.classList.toggle("is-selected", Boolean(selected) && Number(input?.value) <= selected);
     });
-    const data = await response.json();
+  };
+  setOpen(false);
+  openButton.addEventListener("click", () => { setOpen(wrapper.hidden); });
+  closeButton?.addEventListener("click", () => { setOpen(false); });
+  wrapper.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setOpen(false);
+    }
+  });
+  form.addEventListener("change", updateRating);
+  form.addEventListener("reset", () => { queueMicrotask(updateRating); });
+  updateRating();
+  initializeForm({
+    selector: "#reviewForm",
+    statusSelector: "#reviewFormStatus",
+    endpoint: "/api/enviar-avaliacao",
+    kind: "review",
+    successMessage: "Avaliação enviada para análise. Obrigado por compartilhar sua experiência.",
+    onSuccess: updateRating
+  });
+}
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || "Não foi possível enviar a avaliação.");
-    }
+function redirectLegacyProject() {
+  const project = new URLSearchParams(window.location.search).get("projeto");
+  const routes = new Map([
+    ["barbearia", "/demos/barbearia.html"],
+    ["petshop", "/demos/petshop.html"],
+    ["restaurante", "/demos/restaurante.html"]
+  ]);
+  if (routes.has(project)) window.location.replace(routes.get(project));
+}
 
-    reviewForm.reset();
-    setReviewRating(5);
-    if (reviewFormStatus) {
-      reviewFormStatus.textContent = "Avaliação enviada para análise. Obrigado pelo feedback.";
-      reviewFormStatus.style.color = "#6f4e8f";
-    }
-  } catch (error) {
-    if (reviewFormStatus) {
-      reviewFormStatus.textContent = error.message || "Não foi possível enviar agora.";
-      reviewFormStatus.style.color = "#a44";
-    }
-  } finally {
-    submit.disabled = false;
-    submit.innerHTML = 'Enviar avaliação <span>↗</span>';
-  }
+// Navigation and forms are initialized before optional motion is loaded.
+applySiteConfig();
+renderPlans();
+initializePlanSelection();
+initializeMenu();
+initializeForm({
+  selector: "#contactForm",
+  statusSelector: "#formStatus",
+  endpoint: "/api/enviar-contato",
+  kind: "contact",
+  successMessage: "Mensagem enviada! Vamos entrar em contato para conversar sobre seu projeto."
 });
+initializeReview();
+redirectLegacyProject();
+
+let stopAnimations = () => {};
+const startAnimations = (skipIntro = false) => {
+  stopAnimations();
+  stopAnimations = initAnimations({ skipIntro });
+};
+if (document.readyState === "complete") startAnimations();
+else window.addEventListener("load", () => { startAnimations(); }, { once: true });
+window.addEventListener("pagehide", () => { stopAnimations(); });
+window.addEventListener("pageshow", (event) => { if (event.persisted) startAnimations(true); });
