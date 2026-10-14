@@ -21,6 +21,19 @@ Use Node.js 20 ou mais recente. O servidor usa a porta definida em `PORT`
 (padrão: 10000). `GET /api/health` confirma a inicialização.
 `npm run check` verifica a sintaxe do servidor e da aplicação principal.
 
+## Monitoramento
+
+O workflow `.github/workflows/keep-alive.yml` faz uma chamada externa a
+`https://gbm-web-prod.onrender.com/api/health` a cada cinco minutos e verifica
+se a resposta identifica o serviço `gbm-web`. Também permite execução manual
+na aba Actions e executa uma primeira verificação quando esse arquivo muda
+no `main`. Não precisa de tokens ou credenciais do Render
+
+O GitHub pode atrasar execuções agendadas, portanto o intervalo não garante
+disponibilidade contínua. As execuções usam a franquia de minutos do plano
+quando aplicável. Em repositórios públicos, o GitHub pode desativar agendas
+após 60 dias sem atividade
+
 ## Visual e demonstrações
 
 A página usa fontes locais e os bundles de GSAP/ScrollTrigger do pacote

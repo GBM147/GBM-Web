@@ -1,0 +1,34 @@
+name: Monitorar GBM Web
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/keep-alive.yml'
+
+permissions: {}
+
+concurrency:
+  group: gbm-web-keep-alive
+  cancel-in-progress: false
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verificar o site
+        shell: bash
+        run: |
+          set -euo pipefail
+          response_file="$RUNNER_TEMP/gbm-web-health.json"
+          curl --fail --silent --show-error \
+            --connect-timeout 15 --max-time 90 \
+            --retry 2 --retry-delay 5 --retry-max-time 240 \
+            --retry-connrefused \
+            --output "$response_file" \
+            https://gbm-web-prod.onrender.com/api/health
+          jq -e '.success == true and .service == "gbm-web"' "$response_file"
