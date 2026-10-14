@@ -60,6 +60,11 @@ Marca, localização, planos e contato pelo WhatsApp são configurados nesse
 arquivo. `whatsapp` usa somente dígitos, com código do país e DDD; o número
 comercial atual é `5511958974750`. `whatsappMessage` define a mensagem inicial.
 
+Cada plano define `description`, `idealFor` e `features`, com `title` e
+`description` para explicar cada entrega. A seção de planos em `index.html`
+mantém o mesmo conteúdo para quem navegar sem JavaScript; atualize essa
+versão junto com os dados quando mudar a oferta comercial
+
 Para criar um novo site a partir desta base, altere a configuração e substitua os conteúdos visuais necessários sem acoplar o projeto ao GBM Finance.
 
 ## Variáveis

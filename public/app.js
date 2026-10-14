@@ -51,8 +51,23 @@ function renderPlans() {
     const price = createNode("div", "price-value");
     price.append(createNode("strong", "", plan.price), createNode("small", "", "por projeto"));
     card.append(price);
+    if (plan.idealFor) {
+      const audience = createNode("p", "price-audience");
+      audience.append(createNode("span", "", "Ideal para"), document.createTextNode(plan.idealFor));
+      card.append(audience);
+    }
+    card.append(createNode("p", "price-includes", "O que está incluído"));
     const features = createNode("ul", "price-features");
-    (plan.features || []).forEach((feature) => { features.append(createNode("li", "", feature)); });
+    (plan.features || []).forEach((feature) => {
+      if (typeof feature === "string") {
+        features.append(createNode("li", "", feature));
+      } else if (feature?.title) {
+        const item = createNode("li");
+        item.append(createNode("strong", "price-feature-title", feature.title));
+        if (feature.description) item.append(createNode("span", "price-feature-description", feature.description));
+        features.append(item);
+      }
+    });
     card.append(features);
     const link = createNode("a", "button button-primary price-button", `Escolher ${plan.name} `);
     link.href = "#contato";
