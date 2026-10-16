@@ -1,0 +1,28 @@
+name: Validar migracao Netlify
+
+on:
+  push:
+    branches:
+      - main
+      - deploy/netlify-gbm-web-20261016
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Instalar dependencias
+        run: npm install --package-lock=false
+      - name: Verificar sintaxe
+        run: npm run check
+      - name: Gerar frontend e GSAP
+        run: npm run build:netlify
+      - name: Testar rotas e seguranca
+        run: npm run test:netlify

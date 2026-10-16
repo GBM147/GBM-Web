@@ -6,8 +6,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check public/app.js",
-    "audit": "npm audit --omit=dev --audit-level=high"
+    "check": "node --check server.js && node --check public/app.js && node --check scripts/build-netlify.js && node --check netlify/mail.mjs && node --check netlify/functions/enviar-contato.mjs && node --check netlify/functions/enviar-avaliacao.mjs && node --check netlify/functions/health.mjs",
+    "audit": "npm audit --omit=dev --audit-level=high",
+    "build:netlify": "node scripts/build-netlify.js",
+    "test:netlify": "node --test scripts/test-netlify.mjs"
   },
   "engines": {
     "node": ">=20"

@@ -1,0 +1,15 @@
+# Configuração oficial do GBM Web no Netlify.
+# Valores declarados aqui substituem os informados no formulário de deploy.
+[build]
+  command = "npm run build:netlify"
+  publish = "public"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Rotas /api/* são atendidas pelas Functions nativas via config.path.
+# Nunca coloque as chaves do Resend neste arquivo.
