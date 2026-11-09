@@ -4,3 +4,6 @@ node_modules/
 !.env.example
 .DS_Store
 npm-debug.log*
+
+# Gerado por npm run build:netlify
+public/vendor/

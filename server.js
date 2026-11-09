@@ -204,6 +204,13 @@ for (const file of ["gsap.min.js", "ScrollTrigger.min.js"]) {
   });
 }
 
+// As demonstrações antigas agora ficam juntas em /projetos.
+app.get("/demos/:page", (req, res, next) => {
+  const demo = req.params.page.replace(/\.html$/, "");
+  if (!["barbearia", "petshop", "restaurante"].includes(demo)) return next();
+  res.redirect(301, `/projetos?demo=${demo}`);
+});
+
 app.use(express.static(PUBLIC_DIR, {
   extensions: ["html"]
 }));
