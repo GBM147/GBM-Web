@@ -1,4 +1,4 @@
-/* Three local business demonstrations, each with its own visual identity. */
+/* Projetos: three fictional business demos on one page, each with its own visual identity. */
 @font-face {
   font-family: "Demo Sans";
   src: local("Arial");
@@ -15,7 +15,7 @@
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 120px; }
-body { margin: 0; padding-top: 44px; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 16px; }
+body { margin: 0; padding-top: 56px; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 16px; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
@@ -26,9 +26,17 @@ svg { display: block; width: 100%; height: auto; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 .skip-link { position: fixed; left: 16px; top: 8px; z-index: 100; padding: 10px 20px; color: #fff; background: #191919; transform: translateY(-150%); }
 .skip-link:focus { transform: translateY(0); }
-.demo-notice { position: fixed; inset: 0 0 auto; z-index: 50; height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 max(24px, calc((100vw - 1280px) / 2)); color: #fff; background: #211d29; font-size: 12px; letter-spacing: .02em; }
-.demo-notice strong { font-weight: 700; }
-.demo-notice a { white-space: nowrap; text-decoration: underline; text-underline-offset: 3px; }
+.demo-notice { position: fixed; inset: 0 0 auto; z-index: 50; height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 max(24px, calc((100vw - 1280px) / 2)); color: #fff; background: #211d29; font-size: 12px; letter-spacing: .02em; }
+.notice-back { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; white-space: nowrap; }
+.notice-back:hover .notice-label { text-decoration: underline; text-underline-offset: 3px; }
+.demo-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 40px; background: rgb(255 255 255 / 10%); }
+.demo-tabs a { padding: 8px 16px; border-radius: 40px; color: rgb(255 255 255 / 80%); font-weight: 600; white-space: nowrap; transition: background .2s, color .2s; }
+.demo-tabs a:hover { color: #fff; }
+.demo-tabs a[aria-current="true"] { background: #fff; color: #211d29; }
+.notice-cta { padding: 9px 16px; border-radius: 40px; background: #e65a32; color: #fff; font-weight: 700; white-space: nowrap; transition: background .2s; }
+.notice-cta:hover { background: #b93c1b; }
+.demo-panel { background: var(--paper); color: var(--ink); }
+.demo-panel + .demo-panel { border-top: 10px solid #211d29; }
 .shell { width: min(1280px, calc(100% - 112px)); margin-inline: auto; }
 .site-header { height: 108px; display: flex; align-items: center; justify-content: space-between; gap: 30px; border-bottom: 1px solid var(--line); }
 .brand { display: flex; flex-direction: column; line-height: .9; font-family: var(--serif); font-size: 31px; font-weight: 700; letter-spacing: -.05em; }
@@ -157,7 +165,9 @@ svg { display: block; width: 100%; height: auto; }
 }
 @media (max-width: 760px) {
   html { scroll-padding-top: 76px; }
-  .demo-notice { padding-inline: 20px; font-size: 9px; gap: 8px; }
+  .demo-notice { padding-inline: 14px; font-size: 11px; gap: 8px; }
+  .notice-label, .notice-cta { display: none; }
+  .demo-tabs a { padding: 8px 11px; }
   .shell { width: calc(100% - 40px); }
   .site-header { height: 90px; gap: 14px; }
   .brand, .restaurant .brand { font-size: 27px; }
@@ -206,7 +216,8 @@ svg { display: block; width: 100%; height: auto; }
   .pet .section-heading h2, .pet .story h2, .pet .final-cta h2 { font-size: 39px; }
 }
 @media (max-width: 360px) {
-  .demo-notice { padding-inline: 12px; font-size: 9px; }
+  .demo-notice { padding-inline: 10px; font-size: 10px; }
+  .demo-tabs a { padding: 8px 9px; }
   .shell { width: calc(100% - 32px); }
   .nav { gap: 10px; }
   .hero h1, .restaurant .hero h1 { font-size: 53px; }

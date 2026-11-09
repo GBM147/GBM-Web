@@ -13,3 +13,24 @@
 
 # Rotas /api/* são atendidas pelas Functions nativas via config.path.
 # Nunca coloque as chaves do Resend neste arquivo.
+
+# Site com duas páginas: / (vendas) e /projetos (demonstrações).
+[[redirects]]
+  from = "/projetos"
+  to = "/projetos.html"
+  status = 200
+
+[[redirects]]
+  from = "/demos/barbearia.html"
+  to = "/projetos?demo=barbearia"
+  status = 301
+
+[[redirects]]
+  from = "/demos/restaurante.html"
+  to = "/projetos?demo=restaurante"
+  status = 301
+
+[[redirects]]
+  from = "/demos/petshop.html"
+  to = "/projetos?demo=petshop"
+  status = 301

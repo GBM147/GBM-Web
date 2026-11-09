@@ -31,7 +31,7 @@ O antigo servidor Express em `server.js` permanece disponível para desenvolvime
 3. Cadastre em **Project configuration > Environment variables** (com escopo **Functions**) as variáveis secretas `RESEND_API_KEY`, `EMAIL_SUPORTE` e `EMAIL_FROM`. Use como remetente um endereço/domínio **verificado no Resend**. Nunca copie as chaves para o GitHub.
 4. Faça o deploy e verifique `/api/health`: a resposta JSON deve conter `"success": true` e `"service": "gbm-web"`.
 5. Teste manualmente o formulário de contato e o de avaliação e confirme o recebimento dos e-mails de ponta a ponta.
-6. Teste as demonstrações `/demos/barbearia.html`, `/demos/petshop.html`, `/demos/restaurante.html`, as animações GSAP e os botões do WhatsApp.
+6. Teste a página `/projetos` (abas Barbearia, Restaurante e Pet shop), as animações GSAP e os botões do WhatsApp.
 
 O Netlify publica os arquivos em `public/`; o build copia os bundles locais de GSAP do `node_modules` para `public/vendor/gsap/`.
 As Functions modernas estão em `netlify/functions/`, com rotas configuradas por `config.path`, sem proxy para o Render.
@@ -60,9 +60,12 @@ ScrollTrigger, animações por transform e respeito a `prefers-reduced-motion`.
 `public/animations.js` separa o movimento das funções essenciais de navegação
 e contato em `public/app.js`. O conteúdo continua visível sem animações.
 
-As três páginas em `public/demos/` apresentam marcas fictícias: Época
-Barbearia, Terra & Mesa e Pata Club. Seus botões de orçamento levam à GBM Web;
-não recebem agendamentos para negócios reais.
+O site tem no máximo duas páginas: `/` (vantagens, exemplos, planos e contato)
+e `/projetos`, que reúne em abas as três demonstrações com marcas fictícias:
+Época Barbearia, Terra & Mesa e Pata Club (`/projetos#barbearia`,
+`#restaurante`, `#petshop`). Seus botões de orçamento levam à GBM Web; não
+recebem agendamentos para negócios reais. Os antigos endereços
+`/demos/*.html` redirecionam para `/projetos`.
 
 As fontes Manrope e DM Sans estão em `public/assets/fonts/`, com suas
 respectivas licenças OFL. As ilustrações SVG são parte do projeto.
@@ -75,8 +78,8 @@ Marca, localização, planos e contato pelo WhatsApp são configurados nesse
 arquivo. `whatsapp` usa somente dígitos, com código do país e DDD; o número
 comercial atual é `5511958974750`. `whatsappMessage` define a mensagem inicial.
 
-Cada plano define `description`, `idealFor` e `features`, com `title` e
-`description` para explicar cada entrega. A seção de planos em `index.html`
+Cada plano define `description`, `idealFor` e `features`, uma lista curta de
+entregas. A seção de planos em `index.html`
 mantém o mesmo conteúdo para quem navegar sem JavaScript; atualize essa
 versão junto com os dados quando mudar a oferta comercial
 

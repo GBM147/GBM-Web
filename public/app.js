@@ -287,12 +287,7 @@ function initializeReview() {
 
 function redirectLegacyProject() {
   const project = new URLSearchParams(window.location.search).get("projeto");
-  const routes = new Map([
-    ["barbearia", "/demos/barbearia.html"],
-    ["petshop", "/demos/petshop.html"],
-    ["restaurante", "/demos/restaurante.html"]
-  ]);
-  if (routes.has(project)) window.location.replace(routes.get(project));
+  if (["barbearia", "petshop", "restaurante"].includes(project)) window.location.replace(`/projetos#${project}`);
 }
 
 // Navigation and forms are initialized before optional motion is loaded.
