@@ -86,10 +86,11 @@
 
   <main id="conteudo">
     <section class="hero" id="inicio" aria-labelledby="heroTitle">
+      <canvas class="hero-dots" aria-hidden="true"></canvas>
       <div class="container hero-grid">
         <div class="hero-copy">
-          <p class="hero-kicker"><span class="status-dot" aria-hidden="true"></span> Design & desenvolvimento web</p>
-          <h1 class="hero-title" id="heroTitle"><span class="line"><span class="line-inner">Seu negócio</span></span><span class="line"><span class="line-inner">Uma presença</span></span><span class="line"><span class="line-inner"><em>à altura</em><svg class="title-spark" aria-hidden="true"><use href="#icon-spark"/></svg></span></span></h1>
+          <p class="hero-kicker"><span class="status-dot" aria-hidden="true"></span><span class="sr-only">Sites para pequenas empresas</span><span class="kicker-live" aria-hidden="true">Sites para <span class="kicker-word"><span data-live-kicker>pequenas empresas</span></span></span></p>
+          <h1 class="hero-title" id="heroTitle"><span class="sr-only">Seu negócio, uma presença à altura</span><span class="line" aria-hidden="true"><span class="line-inner">Seu negócio</span></span><span class="line" aria-hidden="true"><span class="line-inner">Uma presença</span></span><span class="line" aria-hidden="true"><span class="line-inner"><em>à altura</em><svg class="title-spark" aria-hidden="true"><use href="#icon-spark"/></svg></span></span></h1>
           <p class="hero-description">Sites profissionais para pequenas empresas de São Paulo — bonitos no celular e com o seu WhatsApp a um toque do cliente</p>
           <div class="hero-actions">
             <a class="button button-primary" href="https://wa.me/5511958974750" data-whatsapp target="_blank" rel="noopener noreferrer" data-magnetic>Vamos criar seu site <span class="arrow"><svg aria-hidden="true"><use href="#icon-arrow"/></svg></span></a>
@@ -99,27 +100,52 @@
         </div>
         <div class="hero-art" aria-hidden="true">
           <div class="hero-art-inner">
-            <div class="art-orbit"></div><div class="art-sphere orbit-object"></div>
-            <svg class="art-spark orbit-object"><use href="#icon-spark"/></svg>
-            <div class="art-label"><span>IDEIA → DESIGN → SITE</span><b>Uma nova perspectiva</b></div>
-            <div class="hero-browser">
-              <div class="browser-bar"><div class="browser-dots"><i></i><i></i><i></i></div><span>epoca.barbearia</span><svg aria-hidden="true"><use href="#icon-arrow"/></svg></div>
-              <div class="mock-site-main">
-                <div class="mock-brand">ÉPOCA<span>BARBEARIA</span><small>ESTILO QUE FICA</small></div>
-                <div class="mock-layout"><div class="mock-copy"><small>O SEU TEMPO, O SEU ESTILO</small><strong>Clássico<br>Sem ser<br>igual</strong><span class="mock-button">Encontre seu estilo</span></div><svg class="mock-illustration" viewBox="0 0 300 340"><use href="#barber-art"/></svg></div>
-                <div class="mock-bottom"><span>Corte · Barba · Cuidado</span><span>São Paulo, SP</span></div>
-              </div>
+            <div class="art-stage">
+              <div class="art-layer" data-depth="0.3"><div class="art-orbit"></div></div>
+              <div class="art-layer" data-depth="0.6"><div class="art-sphere orbit-object"></div></div>
+              <div class="art-layer" data-depth="1.6"><svg class="art-spark orbit-object"><use href="#icon-spark"/></svg></div>
+              <div class="art-layer" data-depth="0.5"><div class="art-label"><span><i class="live-dot"></i>Site no ar</span><b data-live-name>Época Barbearia</b></div></div>
+              <div class="art-layer" data-depth="1"><div class="hero-browser">
+                <div class="browser-bar"><div class="browser-dots"><i></i><i></i><i></i></div><span class="browser-url" data-live-url>epoca.barbearia</span><svg><use href="#icon-arrow"/></svg></div>
+                <div class="mock-screens">
+                  <div class="mock-site-main mock-barber" data-slide>
+                    <div class="mock-brand">ÉPOCA<span>BARBEARIA</span><small>ESTILO QUE FICA</small></div>
+                    <div class="mock-layout"><div class="mock-copy"><small>O SEU TEMPO, O SEU ESTILO</small><strong>Clássico<br>Sem ser<br>igual</strong><span class="mock-button">Agendar horário</span></div><svg class="mock-illustration" viewBox="0 0 300 340"><use href="#barber-art"/></svg></div>
+                    <div class="mock-bottom"><span>Corte · Barba · Cuidado</span><span>São Paulo, SP</span></div>
+                  </div>
+                  <div class="mock-site-main mock-food" data-slide>
+                    <div class="mock-brand">terra &amp; mesa<span>COZINHA DE AFETO</span><small>CARDÁPIO · PEDIDOS</small></div>
+                    <div class="mock-layout"><div class="mock-copy"><small>COMIDA BOA, SEM PRESSA</small><strong>Da terra<br>à mesa<br><em>com afeto</em></strong><span class="mock-button">Ver cardápio</span></div><svg class="mock-illustration" viewBox="0 0 320 320"><use href="#food-art"/></svg></div>
+                    <div class="mock-bottom"><span>Almoço · Jantar · Encomendas</span><span>São Paulo, SP</span></div>
+                  </div>
+                  <div class="mock-site-main mock-pet" data-slide>
+                    <div class="mock-brand">pata club<span>BANHO &amp; TOSA</span><small>✦ PARA MELHORES AMIGOS</small></div>
+                    <div class="mock-layout"><div class="mock-copy"><small>CARINHO EM CADA DETALHE</small><strong>Amor em<br>cada<br><em>cuidado</em></strong><span class="mock-button">Agendar banho</span></div><svg class="mock-illustration" viewBox="0 0 300 320"><use href="#pet-art"/></svg></div>
+                    <div class="mock-bottom"><span>Banho · Tosa · Carinho</span><span>São Paulo, SP</span></div>
+                  </div>
+                </div>
+              </div></div>
+              <div class="art-layer" data-depth="1.8"><div class="hero-phone">
+                <div class="phone-speaker"></div>
+                <div class="phone-content chat">
+                  <div class="chat-head"><span class="chat-avatar" data-live-initial>É</span><span><b data-live-name>Época Barbearia</b><small>online</small></span></div>
+                  <div class="chat-body">
+                    <span class="chat-day">Hoje</span>
+                    <div class="chat-in"><p class="chat-bubble in" data-live-msg>Oi! Vi o site de vocês. Tem horário hoje às 18h?</p><p class="chat-typing"><i></i><i></i><i></i></p></div>
+                    <p class="chat-bubble out" data-live-reply>Tem sim! Já deixei reservado ✂️</p>
+                  </div>
+                </div>
+              </div></div>
+              <div class="art-layer" data-depth="2.2"><div class="live-toast"><span>+1</span>cliente pelo site</div></div>
             </div>
-            <div class="hero-phone">
-              <div class="phone-speaker"></div>
-              <div class="phone-content"><span class="phone-brand">pata club<span>✦</span></span><strong>Amor em<br>cada cuidado</strong><svg class="pet-symbol" viewBox="0 0 300 320"><use href="#pet-art"/></svg><span class="phone-button">Conheça a Pata</span></div>
-            </div>
-            <span class="art-caption">Uma ideia bonita merece ganhar vida</span>
+            <span class="art-caption">O cliente encontra o site e chama no seu WhatsApp</span>
           </div>
         </div>
       </div>
       <div class="container hero-footer"><span>ESTRATÉGIA / DESIGN / PRESENÇA</span><a class="scroll-link" href="#servicos">Por que ter um site <span aria-hidden="true">↓</span></a><span>23° S / SÃO PAULO</span></div>
     </section>
+
+    <div class="marquee-band" aria-hidden="true"><div class="marquee-track"><div class="marquee-group"><span>Barbearias</span><svg><use href="#icon-spark"/></svg><em>restaurantes</em><svg><use href="#icon-spark"/></svg><span>Pet shops</span><svg><use href="#icon-spark"/></svg><em>oficinas</em><svg><use href="#icon-spark"/></svg><span>Salões</span><svg><use href="#icon-spark"/></svg><em>clínicas</em><svg><use href="#icon-spark"/></svg><span>Lojas</span><svg><use href="#icon-spark"/></svg><em>academias</em><svg><use href="#icon-spark"/></svg></div><div class="marquee-group"><span>Barbearias</span><svg><use href="#icon-spark"/></svg><em>restaurantes</em><svg><use href="#icon-spark"/></svg><span>Pet shops</span><svg><use href="#icon-spark"/></svg><em>oficinas</em><svg><use href="#icon-spark"/></svg><span>Salões</span><svg><use href="#icon-spark"/></svg><em>clínicas</em><svg><use href="#icon-spark"/></svg><span>Lojas</span><svg><use href="#icon-spark"/></svg><em>academias</em><svg><use href="#icon-spark"/></svg></div></div></div>
 
     <section class="section services-section" id="servicos" aria-labelledby="servicesTitle">
       <div class="container">
