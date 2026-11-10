@@ -60,7 +60,8 @@ ScrollTrigger, animações por transform e respeito a `prefers-reduced-motion`.
 `public/animations.js` separa o movimento das funções essenciais de navegação
 e contato em `public/app.js`. O conteúdo continua visível sem animações.
 
-O site tem no máximo duas páginas: `/` (vantagens, exemplos, planos e contato)
+O site tem no máximo duas páginas: `/` (topo com demonstração ao vivo, planos e
+contato)
 e `/projetos`, que reúne em abas as três demonstrações com marcas fictícias:
 Época Barbearia, Terra & Mesa e Pata Club (`/projetos#barbearia`,
 `#restaurante`, `#petshop`). Seus botões de orçamento levam à GBM Web; não

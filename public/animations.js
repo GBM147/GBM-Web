@@ -371,7 +371,7 @@ export function initAnimations({ skipIntro = false } = {}) {
       document.addEventListener("keydown", () => { pointerFocus = false; }, { capture: true, signal: localListeners.signal });
 
       // Headings rise word by word as each section arrives.
-      document.querySelectorAll(".section-heading h2, .process-intro h2, .faq-layout h2, .contact-copy h2").forEach((heading) => {
+      document.querySelectorAll(".section-heading h2, .contact-copy h2").forEach((heading) => {
         const split = splitWords(heading);
         restorers.push(split.restore);
         gsap.from(split.words, {
