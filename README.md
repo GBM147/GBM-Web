@@ -71,6 +71,25 @@ recebem agendamentos para negócios reais. Os antigos endereços
 As fontes Manrope e DM Sans estão em `public/assets/fonts/`, com suas
 respectivas licenças OFL. As ilustrações SVG são parte do projeto.
 
+Cada demonstração tem estrutura, tipografia e movimento próprios, para não
+parecer o mesmo modelo com outra cor:
+
+- **Época Barbearia** (`projetos-epoca.css`): noturna, títulos em Bebas Neue,
+  linhas que sobem por trás de uma máscara, selo giratório, tesoura que corta,
+  faixa de barbearia e lista de preços com destaque ao passar o ponteiro.
+- **Terra & Mesa** (`projetos-terra.css`): editorial, títulos em Fraunces,
+  prato que gira e ingredientes que se deslocam com a rolagem, cardápio com
+  filtro deslizante e ramo que se desenha.
+- **Pata Club** (`projetos-pata.css`): arredondada, títulos em Fredoka,
+  mascote animado (rabo, piscada, olhos que seguem o ponteiro), faixa em
+  movimento e carteirinha que inclina em 3D.
+
+`projetos.css` guarda só a casca comum (barra de abas). As fontes Bebas Neue,
+Fraunces e Fredoka também são locais, com licença OFL na mesma pasta, e só são
+baixadas quando a demonstração correspondente é aberta. Os efeitos ficam em
+`public/projetos.js` (GSAP + ScrollTrigger) e todo o conteúdo continua visível
+sem JavaScript ou com `prefers-reduced-motion`.
+
 ## Arquitetura
 
 O arquivo `public/site-config.js` concentra os dados que mudam de cliente para cliente.

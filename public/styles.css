@@ -393,6 +393,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offs
   .mock-layout { padding: 17px 17px 22px; gap: 8px; }
   .mock-brand { padding: 13px 17px 0; }
   .mock-copy strong, .mock-copy h2, .mock-copy h3 { font-size: 24px; }
+  .mock-barber .mock-copy strong { font-size: 26px; }
   .mock-illustration { height: 145px; }
   .hero-phone { right: 4px; top: 212px; width: 114px; height: 214px; padding: 6px; border-radius: 21px; }
   .phone-content { padding: 24px 8px 10px; border-radius: 15px; }
@@ -495,16 +496,26 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offs
 .mock-screens { display: grid; }
 .mock-screens > [data-slide] { grid-area: 1 / 1; position: relative; background: #faf8f1; }
 .mock-screens > [data-slide] + [data-slide] { visibility: hidden; }
+/* Miniaturas no topo: cada uma segue a identidade da demonstração em /projetos. */
+@font-face { font-family: "Bebas Neue"; src: url("/assets/fonts/bebas-neue-latin-400-normal.woff2") format("woff2"); font-display: swap; }
+.mock-screens > .mock-barber { background: #151412; color: #f1e8d6; }
+.mock-barber .mock-brand { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-size: 16px; letter-spacing: .09em; }
+.mock-barber .mock-brand > span { border-left-color: rgb(241 232 214 / 30%); }
+.mock-barber .mock-brand > span, .mock-barber .mock-brand > small, .mock-barber .mock-copy small, .mock-barber .mock-bottom { color: #a59c8a; }
+.mock-barber .mock-copy strong { font-family: "Bebas Neue", "Arial Narrow", Arial, sans-serif; font-size: 31px; line-height: .94; letter-spacing: .01em; text-transform: uppercase; white-space: nowrap; }
+.mock-barber .mock-copy em { font-size: .68em; text-transform: none; letter-spacing: -.03em; color: #cf7044; }
+.mock-barber .mock-copy .mock-button { background: #cf7044; color: #151412; border-radius: 0; font-weight: 700; }
+.mock-barber .mock-bottom { border-top-color: rgb(241 232 214 / 16%); }
 .mock-screens > .mock-food { background: #eef0e1; color: #35472f; }
 .mock-food .mock-brand > span, .mock-food .mock-brand > small, .mock-food .mock-copy small, .mock-food .mock-bottom { color: #5d6a51; }
 .mock-food .mock-copy em { color: #a64625; }
-.mock-food .mock-button { background: #35472f; color: #f7f2e6; }
+.mock-food .mock-copy .mock-button { background: #35472f; color: #f7f2e6; }
 .mock-screens > .mock-pet { background: #f4eefc; color: #3b2552; }
 .mock-pet .mock-brand { font-family: var(--heading); font-weight: 800; letter-spacing: -.05em; font-size: 14px; }
 .mock-pet .mock-brand > span, .mock-pet .mock-brand > small, .mock-pet .mock-copy small, .mock-pet .mock-bottom { color: #6a5a80; letter-spacing: .05em; }
 .mock-pet .mock-copy strong { font-family: var(--heading); font-weight: 700; letter-spacing: -.07em; }
 .mock-pet .mock-copy em { font-family: inherit; font-style: normal; font-weight: 700; color: #7c45ad; }
-.mock-pet .mock-button { background: #3b2552; border-radius: 20px; }
+.mock-pet .mock-copy .mock-button { background: #3b2552; border-radius: 20px; }
 
 .phone-content.chat { display: flex; flex-direction: column; padding: 0; background: #ece5dd; }
 .chat-head { display: flex; align-items: center; gap: 5px; padding: 22px 8px 6px; background: #1f3a30; color: #f3efe6; }
