@@ -1,8 +1,8 @@
 """Modela o celular da GBM Web no Blender (por código) e exporta para o site.
 
 Uso:
-  /caminho/do/venv/bin/python art/phone.py            -> public/assets/3d/phone.glb
-  /caminho/do/venv/bin/python art/phone.py --preview  -> também renderiza art/out/phone-preview.png (Cycles)
+  /caminho/do/venv/bin/python art/phone.py  -> public/assets/3d/phone.glb
+  (art/video_shots.py reaproveita build() para as cenas do vídeo)
 
 O modelo é próprio (sem copiar aparelhos de marcas). Cada peça tem um nome
 (Frame, Glass, Screen, Island, Back, Plateau, LensGlass, LensRing, Flash,
@@ -11,7 +11,6 @@ tela. Medidas em unidades do site: altura 2.06, largura 1, espessura 0.105.
 """
 import math
 import os
-import sys
 
 import bpy  # noqa: I001  (bpy must come first: it makes bmesh and mathutils importable)
 import bmesh
@@ -140,8 +139,10 @@ def join(objects, name):
     return objects[0]
 
 
-def build():
-    reset()
+def build(fresh=True):
+    """Builds the phone under an empty named Phone; fresh=False keeps the current scene."""
+    if fresh:
+        reset()
     parts = [body()]
     front = DEPTH / 2
     back = -DEPTH / 2
@@ -182,9 +183,8 @@ def build():
     parts.append(join(holes, "Speaker"))
     phone = bpy.data.objects.new("Phone", None)
     bpy.context.scene.collection.objects.link(phone)
-    for part in bpy.context.scene.objects:
-        if part is not phone:
-            part.parent = phone
+    for part in parts:
+        part.parent = phone
     return phone
 
 
@@ -205,6 +205,3 @@ if __name__ == "__main__":
     target = os.path.join(ROOT, "public", "assets", "3d", "phone.glb")
     export(target)
     print(f"{target}: {os.path.getsize(target) // 1024} KB")
-    if "--preview" in sys.argv:
-        from studio import render_preview  # noqa: E402  (art/studio.py)
-        render_preview(os.path.join(ROOT, "art", "out", "phone-preview.png"))

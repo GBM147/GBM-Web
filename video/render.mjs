@@ -1,7 +1,7 @@
 // Grava o vídeo de apresentação (1080x1920, 30 fps, 30 s) a partir de video/stage.html.
 // Uso: npm run video                     → video/out/gbm-web-apresentacao-30s.mp4 e video/out/capa.png
 //      node video/render.mjs --preview 2,5.8,12  → um PNG por segundo pedido, para conferir cenas
-// Precisa de Playwright (Chromium) e ffmpeg instalados.
+// Precisa de Playwright (Chromium), ffmpeg e das cenas do celular em video/shots/ (npm run video:shots).
 import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
@@ -15,6 +15,9 @@ const COVER_AT = 2.2;
 const DEMOS = ["barbearia", "restaurante", "petshop"];
 const previewIndex = process.argv.indexOf("--preview");
 const previewTimes = previewIndex > -1 ? process.argv[previewIndex + 1].split(",").map(Number) : null;
+if (!fs.existsSync(path.join(root, "video", "shots", "shots.json"))) {
+  throw new Error("Faltam as cenas do celular em video/shots/. Gere com: npm run video:shots (Python com bpy, veja art/requirements.txt)");
+}
 const server = await startStaticServer();
 const base = server.base;
 const browser = await chromium.launch();

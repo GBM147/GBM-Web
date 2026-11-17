@@ -11,6 +11,7 @@
     "build:netlify": "node scripts/build-netlify.js",
     "test:netlify": "node --test scripts/test-netlify.mjs",
     "video": "node video/render.mjs",
+    "video:shots": "node art/textures.mjs && ${GBM_ART_PYTHON:-python3} art/video_shots.py",
     "screens": "node scripts/capture-screens.mjs"
   },
   "engines": {
