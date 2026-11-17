@@ -86,6 +86,10 @@ test("build gera GSAP, Lenis e a cena 3D", () => {
   }
 });
 
+test("modelo do celular 3D existe", () => {
+  assert.equal(fs.existsSync(new URL("../public/assets/3d/phone.glb", import.meta.url)), true);
+});
+
 test("telas do celular 3D existem", () => {
   for (const name of ["barbearia", "restaurante", "petshop", "whatsapp"]) {
     assert.equal(fs.existsSync(new URL(`../public/assets/screens/${name}.webp`, import.meta.url)), true, name);

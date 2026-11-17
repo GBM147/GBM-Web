@@ -71,15 +71,31 @@ recebem agendamentos para negócios reais. Os antigos endereços
 As fontes Manrope e DM Sans estão em `public/assets/fonts/`, com suas
 respectivas licenças OFL. As ilustrações SVG são parte do projeto.
 
-## Topo cinematográfico (3D)
+## Página cinematográfica (3D)
 
-O topo da página inicial é uma história que avança com a rolagem: a seção fica
-travada (GSAP ScrollTrigger) enquanto um celular em 3D (Three.js) gira e mostra
-os exemplos e a conversa no WhatsApp, em 4 etapas.
+A página inicial inteira segue o mesmo modelo: fundo escuro com brilho laranja e
+um único celular em 3D (Three.js), numa camada fixa atrás da página, que
+acompanha a rolagem. Cada parte fica travada (GSAP ScrollTrigger) enquanto passa
+por suas etapas:
+
+- **Topo:** 4 etapas com os exemplos e a conversa no WhatsApp.
+- **Planos:** abertura e um plano por etapa, com o preço contando. O celular
+  troca de exemplo a cada plano. Os painéis são montados por `renderPlans()` a
+  partir de `SITE_CONFIG.plans`, e o HTML de reserva em `index.html` segue o
+  mesmo formato.
+- **Contato:** uma abertura curta com o título, depois o formulário.
+
+A coreografia do celular (`createChoreography` em `public/animations.js`)
+mede as colunas vazias de cada parte (`.story-visual`) e calcula a pose para
+cada trecho da rolagem. No celular, o 3D aparece só no topo.
 
 - `src/hero3d.js`: cena 3D. O `npm run build:netlify` (esbuild) gera
   `public/vendor/hero3d.js`, carregado só depois que a página aparece. Até lá,
-  e com movimento reduzido, aparece uma imagem fixa do celular.
+  e com movimento reduzido, aparece uma imagem fixa do celular no topo e os
+  planos ficam lado a lado.
+- `public/assets/3d/phone.glb`: o celular, modelado por código no Blender
+  (`art/phone.py`). Para refazer: crie um ambiente Python com
+  `pip install -r art/requirements.txt` e rode `python art/phone.py`.
 - `public/assets/screens/*.webp`: telas mostradas no celular. Refaça com
   `npm run screens` quando os exemplos de `/projetos` mudarem.
 - Rolagem suave (Lenis), abertura animada (só na primeira visita da sessão) e

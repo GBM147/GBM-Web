@@ -7,6 +7,8 @@
   Palco de 1080x1920 (9:16) com uma única linha do tempo GSAP pausada em window.tl.
   O video/render.mjs avança a linha do tempo quadro a quadro e grava o MP4.
   Cenas: 0–3s gancho · 3–7s busca · 7–15s o site · 15–20s WhatsApp · 20–25s oferta · 25–30s contato.
+  O celular vem do Blender (art/video_shots.py → video/shots/): ele gira com quadros prontos e,
+  parado, tem a tela vazada; o site e a conversa ficam atrás, encaixados com matrix3d (shots.json).
 -->
 <style>
 @font-face { font-family: "Manrope"; src: url("/assets/fonts/manrope-latin-wght-normal.woff2") format("woff2"); font-weight: 200 800; }
@@ -63,10 +65,17 @@ em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spa
 /* 3 · O site */
 .s-site .cap { position: absolute; left: 76px; top: 236px; font-size: 112px; }
 .sphere { position: absolute; left: 520px; top: 520px; width: 560px; height: 560px; border-radius: 50%; background: radial-gradient(circle at 29% 23%, var(--c1) 0%, var(--c2) 21%, var(--c3) 51%, var(--c4) 76%, var(--c5) 100%); box-shadow: inset -24px -30px 50px #81250e38; }
-.phone { position: absolute; left: 280px; top: 610px; width: 520px; height: 1080px; padding: 16px; border-radius: 74px; background: #1d1c19; box-shadow: 30px 60px 90px -40px #29231b80; }
-.phone::after { content: ""; position: absolute; left: 50%; top: 34px; width: 150px; height: 40px; margin-left: -75px; border-radius: 30px; background: #1d1c19; }
-.screen-wrap { position: relative; width: 488px; height: 1048px; overflow: hidden; border-radius: 58px; background: var(--white); }
-.screen { position: absolute; left: 0; top: 0; width: 488px; }
+.phone3d { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+.phone3d > img, .phone3d > canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+.phone3d .glare { mix-blend-mode: screen; }
+.screen-wrap { position: absolute; left: 0; top: 0; overflow: hidden; background: #000; transform-origin: 0 0; }
+.screen-off { position: absolute; inset: 0; z-index: 3; background: #000; }
+.site-phone { filter: drop-shadow(26px 50px 44px rgb(41 35 27 / 36%)); }
+.site-phone .still, .site-phone .glare, .site-screen { visibility: hidden; }
+.screen { position: absolute; left: 0; top: 92px; width: 488px; }
+.status { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; font-family: var(--heading); font-weight: 700; }
+.status svg { width: 1.9em; height: .72em; }
+.site-screen .status { height: 92px; padding: 0 40px 10px; background: #f6f2ea; color: #20201d; font-size: 21px; }
 .chips { position: absolute; left: 80px; top: 528px; height: 60px; }
 .chip { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 12px; padding: 12px 26px; border-radius: 40px; background: var(--ink); color: var(--paper); font-size: 28px; font-weight: 600; white-space: nowrap; visibility: hidden; }
 .chip i { font-style: normal; color: var(--orange-soft); }
@@ -78,21 +87,22 @@ em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spa
 /* 4 · WhatsApp */
 .s-chat .cap { position: absolute; left: 76px; top: 236px; font-size: 112px; color: var(--paper); }
 .s-chat .cap em { color: var(--orange-soft); }
-.chat { position: absolute; left: 90px; top: 590px; width: 900px; overflow: hidden; border-radius: 44px; background: #ece5dd; box-shadow: 0 50px 90px -40px #000000a0; }
-.chat-head { display: flex; align-items: center; gap: 22px; padding: 30px 36px; background: #1f3a30; color: #f3efe6; }
+.chat-screen { background: #ece5dd; }
+.chat-screen .status { height: 150px; padding: 0 74px; background: #1f3a30; color: #f3efe6; font-size: 30px; }
+.chat-head { display: flex; align-items: center; gap: 22px; padding: 4px 36px 30px; background: #1f3a30; color: #f3efe6; }
 .avatar { display: grid; place-items: center; width: 76px; height: 76px; border-radius: 50%; background: var(--orange); color: #fff; font-family: var(--heading); font-size: 38px; font-weight: 700; }
 .chat-head b { display: block; font-family: var(--heading); font-size: 38px; font-weight: 700; letter-spacing: -.02em; }
 .chat-head small { display: block; font-size: 26px; opacity: .7; }
-.chat-body { position: relative; display: flex; flex-direction: column; gap: 22px; min-height: 560px; padding: 36px 32px 44px; background-image: radial-gradient(#d6ccbf 2px, transparent 2.4px); background-size: 26px 26px; }
-.bubble { max-width: 640px; padding: 22px 28px; border-radius: 30px; font-size: 38px; line-height: 1.38; color: #24231f; box-shadow: 0 2px 2px #00000014; }
+.chat-body { position: relative; display: flex; flex-direction: column; gap: 22px; height: 100%; padding: 36px 32px 44px; background-image: radial-gradient(#d6ccbf 2px, transparent 2.4px); background-size: 26px 26px; }
+.bubble { max-width: 660px; padding: 22px 28px; border-radius: 30px; font-size: 38px; line-height: 1.38; color: #24231f; box-shadow: 0 2px 2px #00000014; }
 .bubble.in { align-self: flex-start; background: var(--white); border-top-left-radius: 8px; transform-origin: 0 100%; }
 .bubble.out { align-self: flex-end; background: #d5f3c6; border-top-right-radius: 8px; transform-origin: 100% 100%; }
 .typing { position: absolute; left: 32px; top: 36px; display: flex; gap: 10px; padding: 28px 30px; border-radius: 30px; border-top-left-radius: 8px; background: var(--white); }
 .typing i { width: 14px; height: 14px; border-radius: 50%; background: #8f8b80; }
-.toast { position: absolute; left: 330px; top: 1290px; display: flex; align-items: center; gap: 20px; padding: 20px 40px 20px 20px; border-radius: 60px; background: var(--orange); color: var(--ink); font-family: var(--heading); font-size: 42px; font-weight: 700; letter-spacing: -.03em; box-shadow: 0 30px 60px -20px #e65a3290; }
+.toast { position: absolute; left: 330px; top: 1420px; display: flex; align-items: center; gap: 20px; padding: 20px 40px 20px 20px; border-radius: 60px; background: var(--orange); color: var(--ink); font-family: var(--heading); font-size: 42px; font-weight: 700; letter-spacing: -.03em; box-shadow: 0 30px 60px -20px #e65a3290; }
 .toast b { display: grid; place-items: center; width: 70px; height: 70px; border-radius: 50%; background: var(--ink); color: var(--paper); font-size: 32px; }
 .burst { position: absolute; width: 50px; height: 50px; color: var(--orange-soft); }
-.s-chat .note { position: absolute; left: 90px; top: 1420px; font-size: 28px; color: #9d9a90; }
+.s-chat .note { position: absolute; left: 82px; top: 506px; font-size: 28px; color: #9d9a90; }
 
 /* 5 · Oferta */
 .s-offer .kicker { position: absolute; left: 80px; top: 280px; color: var(--orange-dark); }
@@ -107,15 +117,15 @@ em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spa
 .price-box .extra { margin-top: 10px; font-size: 32px; color: var(--muted); }
 
 /* 6 · Contato */
-.s-cta .brand { position: absolute; left: 80px; top: 510px; display: flex; align-items: center; gap: 30px; color: var(--paper); }
+.s-cta .brand { position: absolute; left: 80px; top: 330px; display: flex; align-items: center; gap: 30px; color: var(--paper); }
 .s-cta .brand svg { width: 150px; height: 150px; color: var(--orange); }
 .s-cta .brand strong { font-family: var(--heading); font-size: 150px; font-weight: 700; letter-spacing: -.06em; line-height: 1; }
-.s-cta .tag { position: absolute; left: 86px; top: 710px; font-size: 32px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #bdbdb2; }
-.cta-pill { position: absolute; left: 80px; top: 870px; display: flex; align-items: center; gap: 24px; padding: 34px 50px 34px 40px; border-radius: 80px; background: var(--orange); color: var(--ink); font-family: var(--heading); font-size: 58px; font-weight: 700; letter-spacing: -.035em; }
+.s-cta .tag { position: absolute; left: 86px; top: 530px; font-size: 32px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #bdbdb2; }
+.cta-pill { position: absolute; left: 80px; top: 690px; display: flex; align-items: center; gap: 24px; padding: 34px 50px 34px 40px; border-radius: 80px; background: var(--orange); color: var(--ink); font-family: var(--heading); font-size: 58px; font-weight: 700; letter-spacing: -.035em; }
 .cta-pill svg { width: 70px; height: 70px; }
-.s-cta .phone-number { position: absolute; left: 80px; top: 1070px; font-family: var(--heading); font-size: 112px; font-weight: 600; letter-spacing: -.05em; color: var(--paper); }
-.s-cta .link { position: absolute; left: 84px; top: 1230px; font-size: 50px; font-weight: 600; color: var(--orange-soft); }
-.s-cta .place { position: absolute; left: 84px; top: 1310px; font-size: 36px; color: #bdbdb2; }
+.s-cta .phone-number { position: absolute; left: 80px; top: 890px; font-family: var(--heading); font-size: 112px; font-weight: 600; letter-spacing: -.05em; color: var(--paper); }
+.s-cta .link { position: absolute; left: 84px; top: 1050px; font-size: 50px; font-weight: 600; color: var(--orange-soft); }
+.s-cta .place { position: absolute; left: 84px; top: 1130px; font-size: 36px; color: #bdbdb2; }
 </style>
 </head>
 <body>
@@ -143,11 +153,18 @@ em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spa
   <section class="scene s-site">
     <h2 class="title cap"><span>A GBM Web cria</span><span><em>o seu site</em></span></h2>
     <div class="sphere"></div>
-    <div class="phone"><div class="screen-wrap">
-      <img class="screen" src="/video/out/screens/barbearia.png" alt="">
-      <img class="screen" src="/video/out/screens/restaurante.png" alt="">
-      <img class="screen" src="/video/out/screens/petshop.png" alt="">
-    </div></div>
+    <div class="phone3d site-phone">
+      <div class="screen-wrap site-screen">
+        <div class="status"><span>17:41</span><svg viewBox="0 0 64 24" aria-hidden="true"><path d="M2 18h4v4H2zM9 13h4v9H9zM16 8h4v14h-4zM23 3h4v19h-4z" fill="currentColor"/><rect x="34" y="4" width="25" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="37" y="7" width="17" height="10" rx="2.5" fill="currentColor"/><path d="M61 9v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <img class="screen" src="/video/out/screens/barbearia.png" alt="">
+        <img class="screen" src="/video/out/screens/restaurante.png" alt="">
+        <img class="screen" src="/video/out/screens/petshop.png" alt="">
+        <i class="screen-off"></i>
+      </div>
+      <img class="still" src="/video/shots/site.webp" alt="">
+      <img class="glare" src="/video/shots/site-glare.webp" alt="">
+      <canvas class="spin" width="1080" height="1920"></canvas>
+    </div>
     <div class="chips">
       <span class="chip">Exemplo de modelo <i>· Barbearia</i></span>
       <span class="chip">Exemplo de modelo <i>· Restaurante</i></span>
@@ -159,19 +176,24 @@ em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spa
 
   <section class="scene s-chat">
     <h2 class="title cap"><span>Do site direto</span><span><em>pro seu WhatsApp</em></span></h2>
-    <div class="chat">
-      <div class="chat-head"><span class="avatar">É</span><span><b>Época Barbearia</b><small>online</small></span></div>
-      <div class="chat-body">
-        <p class="bubble in in-1">Oi! Vi o site de vocês. Tem horário hoje às 18h?</p>
-        <p class="bubble out">Tem sim! Já deixei reservado ✂️</p>
-        <p class="bubble in in-2">Perfeito, até mais tarde!</p>
-        <p class="typing"><i></i><i></i><i></i></p>
+    <div class="phone3d chat-phone">
+      <div class="screen-wrap chat-screen">
+        <div class="status"><span>17:42</span><svg viewBox="0 0 64 24" aria-hidden="true"><path d="M2 18h4v4H2zM9 13h4v9H9zM16 8h4v14h-4zM23 3h4v19h-4z" fill="currentColor"/><rect x="34" y="4" width="25" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="37" y="7" width="17" height="10" rx="2.5" fill="currentColor"/><path d="M61 9v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="chat-head"><span class="avatar">É</span><span><b>Época Barbearia</b><small>online</small></span></div>
+        <div class="chat-body">
+          <p class="bubble in in-1">Oi! Vi o site de vocês. Tem horário hoje às 18h?</p>
+          <p class="bubble out">Tem sim! Já deixei reservado ✂️</p>
+          <p class="bubble in in-2">Perfeito, até mais tarde!</p>
+          <p class="typing"><i></i><i></i><i></i></p>
+        </div>
       </div>
+      <img class="still" src="/video/shots/chat.webp" alt="">
+      <img class="glare" src="/video/shots/chat-glare.webp" alt="">
     </div>
     <div class="toast"><b>+1</b>cliente pelo site</div>
-    <svg class="burst burst-1" style="left:300px;top:1250px"><use href="#icon-spark"/></svg>
-    <svg class="burst burst-2" style="left:940px;top:1270px"><use href="#icon-spark"/></svg>
-    <svg class="burst burst-3" style="left:860px;top:1400px"><use href="#icon-spark"/></svg>
+    <svg class="burst burst-1" style="left:300px;top:1380px"><use href="#icon-spark"/></svg>
+    <svg class="burst burst-2" style="left:940px;top:1400px"><use href="#icon-spark"/></svg>
+    <svg class="burst burst-3" style="left:860px;top:1530px"><use href="#icon-spark"/></svg>
     <p class="note">Exemplo de conversa</p>
   </section>
 
@@ -192,6 +214,7 @@ em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spa
   </section>
 
   <section class="scene s-cta">
+    <div class="phone3d back-phone"><img class="still" src="/video/shots/back.webp" alt=""></div>
     <div class="brand"><svg><use href="#brand-mark"/></svg><strong>GBM Web</strong></div>
     <p class="tag">Sites para empresas</p>
     <div class="cta-pill"><svg><use href="#icon-whatsapp"/></svg>Chame no WhatsApp</div>
@@ -218,6 +241,38 @@ em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spa
 
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
+
+  // Rendered phone: fit each screen into the hole of its still (corners from shots.json).
+  const shots = await (await fetch("/video/shots/shots.json")).json();
+  const quadMatrix = (width, height, [[x0, y0], [x1, y1], [x2, y2], [x3, y3]]) => {
+    // Rectangle (0,0)-(width,height) onto the four corners (Heckbert's square-to-quad).
+    const sx = x0 - x1 + x2 - x3, sy = y0 - y1 + y2 - y3;
+    const dx1 = x1 - x2, dx2 = x3 - x2, dy1 = y1 - y2, dy2 = y3 - y2;
+    const det = dx1 * dy2 - dx2 * dy1;
+    const g = (sx * dy2 - dx2 * sy) / det, h = (dx1 * sy - sx * dy1) / det;
+    const a = x1 - x0 + g * x1, b = x3 - x0 + h * x3, d = y1 - y0 + g * y1, e = y3 - y0 + h * y3;
+    return `matrix3d(${a / width},${d / width},0,${g / width},${b / height},${e / height},0,${h / height},0,0,1,0,${x0},${y0},0,1)`;
+  };
+  const fitScreen = (element, shot, width) => {
+    const height = Math.round(width / shot.aspect);
+    Object.assign(element.style, { width: `${width}px`, height: `${height}px`, borderRadius: `${shot.radius * width}px`, transform: quadMatrix(width, height, shot.screen) });
+  };
+  fitScreen($(".site-screen"), shots.site, 488);
+  fitScreen($(".chat-screen"), shots.chat, 800);
+  const SPIN_FRAMES = 36;
+  const spinFrames = await Promise.all(Array.from({ length: SPIN_FRAMES }, async (_, index) => {
+    const image = new Image();
+    image.src = `/video/shots/spin/${String(index + 1).padStart(2, "0")}.webp`;
+    await image.decode();
+    return image;
+  }));
+  const spinCanvas = $(".site-phone .spin").getContext("2d");
+  const spin = { frame: 0 };
+  const drawSpin = () => {
+    spinCanvas.clearRect(0, 0, 1080, 1920);
+    spinCanvas.drawImage(spinFrames[Math.round(spin.frame)], 0, 0);
+  };
+  drawSpin();
   gsap.set(".wipe", { yPercent: 100, visibility: "visible" });
   const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
   const show = (selector, at) => tl.set(selector, { autoAlpha: 1 }, at);
@@ -275,20 +330,27 @@ em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spa
   wipe(6.82, "#e65a32");
   hide(".s-search", 7.1);
 
-  // 3 · O site (7–15s)
+  // 3 · O site (7–15s): o celular entra girando (quadros do Blender), para de frente e a tela acende
   const screens = $$(".screen");
   gsap.set(screens.slice(1), { xPercent: 100 });
   show(".s-site", 7.1);
   tl.from(".s-site .cap > span", { y: 70, autoAlpha: 0, duration: .6, stagger: .12 }, 7.25);
   tl.from(".sphere", { scale: .2, autoAlpha: 0, duration: 1.1, ease: "back.out(1.3)" }, 7.3);
-  tl.from(".phone", { y: 380, rotation: 9, autoAlpha: 0, duration: 1.05, ease: "power4.out" }, 7.3);
+  const spinAt = 7.2;
+  const landed = spinAt + SPIN_FRAMES / 30;
+  tl.from(".site-phone", { y: 420, duration: SPIN_FRAMES / 30, ease: "power3.out" }, spinAt);
+  tl.fromTo(spin, { frame: 0 }, { frame: SPIN_FRAMES - 1, duration: (SPIN_FRAMES - 1) / 30, ease: "none", onUpdate: drawSpin }, spinAt);
+  tl.set(".site-phone .spin", { autoAlpha: 0 }, landed);
+  tl.set([".site-phone .still", ".site-phone .glare", ".site-screen"], { autoAlpha: 1 }, landed);
+  tl.to(".site-screen .screen-off", { autoAlpha: 0, duration: .35, ease: "power2.out" }, landed + .08);
+  tl.to(".site-phone .glare", { opacity: .5, duration: .35 }, landed + .08);
   const chips = $$(".chip");
-  tl.fromTo(chips[0], { autoAlpha: 0, x: -40 }, { autoAlpha: 1, x: 0, duration: .4 }, 7.75);
-  tl.to(screens[0], { y: -640, duration: 2.1, ease: "power1.inOut" }, 7.9);
-  tl.from(".badge-1", { scale: .6, autoAlpha: 0, duration: .5, ease: "back.out(2)" }, 8.4);
-  tl.from(".badge-2", { scale: .6, autoAlpha: 0, duration: .5, ease: "back.out(2)" }, 9.1);
-  tl.to(".badge-1", { y: -18, duration: 1.5, repeat: 3, yoyo: true, ease: "sine.inOut" }, 8.9);
-  tl.to(".badge-2", { y: 16, duration: 1.6, repeat: 3, yoyo: true, ease: "sine.inOut" }, 9.6);
+  tl.fromTo(chips[0], { autoAlpha: 0, x: -40 }, { autoAlpha: 1, x: 0, duration: .4 }, landed + .1);
+  tl.to(screens[0], { y: -640, duration: 1.45, ease: "power1.inOut" }, landed + .4);
+  tl.from(".badge-1", { scale: .6, autoAlpha: 0, duration: .5, ease: "back.out(2)" }, 8.9);
+  tl.from(".badge-2", { scale: .6, autoAlpha: 0, duration: .5, ease: "back.out(2)" }, 9.5);
+  tl.to(".badge-1", { y: -18, duration: 1.5, repeat: 3, yoyo: true, ease: "sine.inOut" }, 9.4);
+  tl.to(".badge-2", { y: 16, duration: 1.6, repeat: 3, yoyo: true, ease: "sine.inOut" }, 10);
   const swap = (from, to, at, colors) => {
     tl.to(screens[from], { xPercent: -35, autoAlpha: 0, duration: .55, ease: "power3.inOut" }, at)
       .to(screens[to], { xPercent: 0, duration: .55, ease: "power3.inOut" }, at)
@@ -296,12 +358,12 @@ em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spa
       .fromTo(chips[to], { autoAlpha: 0, x: -40 }, { autoAlpha: 1, x: 0, duration: .4 }, at + .25)
       .to(".sphere", { "--c1": colors[0], "--c2": colors[1], "--c3": colors[2], "--c4": colors[3], "--c5": colors[4], duration: .8, ease: "power2.inOut" }, at);
   };
-  swap(0, 1, 10.1, ["#e6efb8", "#adc176", "#73884a", "#4a5c2e", "#29351b"]);
-  tl.to(screens[1], { y: -640, duration: 1.9, ease: "power1.inOut" }, 10.7);
+  swap(0, 1, 10.2, ["#e6efb8", "#adc176", "#73884a", "#4a5c2e", "#29351b"]);
+  tl.to(screens[1], { y: -640, duration: 1.8, ease: "power1.inOut" }, 10.75);
   swap(1, 2, 12.7, ["#ecdcff", "#bf93ea", "#9360cc", "#66349d", "#3c1c60"]);
   tl.to(screens[2], { y: -640, duration: 1.7, ease: "power1.inOut" }, 13.2);
   exit([".s-site .cap", ".chips", ".badge-1", ".badge-2"], 14.7);
-  tl.to([".phone", ".sphere"], { y: 260, autoAlpha: 0, duration: .35, ease: "power2.in" }, 14.7);
+  tl.to([".site-phone", ".sphere"], { y: 260, autoAlpha: 0, duration: .35, ease: "power2.in" }, 14.7);
   wipe(14.82, "#20201d");
   hide(".s-site", 15.1);
 
@@ -309,7 +371,8 @@ em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spa
   tl.set(".bg", { backgroundColor: "#20201d" }, 15.08).set(".dots", { opacity: .1 }, 15.08).set(".glow", { opacity: .55 }, 15.08);
   show(".s-chat", 15.1);
   tl.from(".s-chat .cap > span", { y: 70, autoAlpha: 0, duration: .6, stagger: .12 }, 15.25);
-  tl.from(".chat", { y: 140, autoAlpha: 0, duration: .8, ease: "power4.out" }, 15.35);
+  tl.from(".chat-phone", { y: 420, autoAlpha: 0, duration: .9, ease: "power4.out" }, 15.3);
+  gsap.set(".chat-phone .glare", { opacity: .45 });
   tl.set([".in-1", ".bubble.out", ".in-2"], { autoAlpha: 0 }, 0);
   tl.from(".typing", { autoAlpha: 0, scale: .8, duration: .25 }, 15.85);
   tl.to(".typing i", { y: -12, duration: .22, stagger: .1, repeat: 3, yoyo: true, ease: "sine.inOut" }, 15.9);
@@ -321,7 +384,7 @@ em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spa
   tl.to(".burst", { autoAlpha: 0, scale: .4, duration: .4, stagger: .06 }, 18.9);
   tl.fromTo(".in-2", { autoAlpha: 0, y: 24, scale: .85 }, { autoAlpha: 1, y: 0, scale: 1, duration: .45, ease: "back.out(1.8)" }, 18.6);
   tl.from(".s-chat .note", { autoAlpha: 0, duration: .5 }, 16.2);
-  exit([".s-chat .cap", ".chat", ".toast", ".s-chat .note"], 19.7);
+  exit([".s-chat .cap", ".chat-phone", ".toast", ".s-chat .note"], 19.7);
   tl.to(".bg", { backgroundColor: "#f6f4ee", duration: .3 }, 19.9).to(".dots", { opacity: .5, duration: .3 }, 19.9).to(".glow", { opacity: 1, duration: .3 }, 19.9);
   hide(".s-chat", 20.05);
 
@@ -343,6 +406,8 @@ em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spa
   tl.set(".bg", { backgroundColor: "#20201d" }, 25.08).set(".dots", { opacity: .1 }, 25.08).set(".glow", { opacity: .55 }, 25.08);
   show(".s-cta", 25.1);
   tl.from(".s-cta .brand svg", { scale: 0, rotation: -140, duration: .8, ease: "back.out(1.8)" }, 25.25);
+  tl.from(".back-phone", { y: 560, rotation: 7, transformOrigin: "70% 85%", autoAlpha: 0, duration: 1.2, ease: "power3.out" }, 25.35);
+  tl.to(".back-phone", { y: -14, duration: 2.2, ease: "sine.inOut", yoyo: true, repeat: 1 }, 26.55);
   tl.from(".s-cta .brand strong", { x: -60, autoAlpha: 0, duration: .6 }, 25.4);
   tl.from(".s-cta .tag", { y: 24, autoAlpha: 0, duration: .5 }, 25.6);
   tl.from(".cta-pill", { scale: .7, autoAlpha: 0, transformOrigin: "0% 50%", duration: .6, ease: "back.out(2)" }, 25.85);
