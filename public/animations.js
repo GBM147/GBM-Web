@@ -182,7 +182,11 @@ function createChoreography({ hero, plans, contact, isDesktop }) {
   const anchorOf = (element) => {
     const stage = element?.closest(".story-stage");
     if (!element || !stage) return null;
+    // Measure the resting layout: the opening tween moves and shrinks the visual for a moment.
+    const moved = element.style.transform;
+    element.style.transform = "none";
     const box = element.getBoundingClientRect();
+    element.style.transform = moved;
     const frame = stage.getBoundingClientRect();
     if (!box.width || !box.height) return null;
     const top = headerHeight() + (box.top - frame.top);
