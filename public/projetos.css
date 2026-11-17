@@ -226,3 +226,9 @@ svg { display: block; width: 100%; height: auto; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: .01ms !important; }
 }
+
+/* Blender photos at the top of each demo (art/demos.py) */
+.hero-photo img { display: block; width: 100%; height: auto; }
+.barber .hero-photo img { border-radius: 50% 50% 6px 6px / 42% 42% 6px 6px; }
+.restaurant .hero-photo img { border-radius: 48% 48% 3px 3px; }
+.pet .hero-photo img { border-radius: 45% 45% 30px 30px; }
