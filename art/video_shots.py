@@ -233,10 +233,9 @@ def render(scene, path):
     return path
 
 
-def webp(png, target, alpha=True, quality=90):
+def webp(png, target, quality=90):
     os.makedirs(os.path.dirname(target), exist_ok=True)
-    pixel = ["-pix_fmt", "yuva420p"] if alpha else ["-pix_fmt", "yuv420p"]
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", png, "-c:v", "libwebp", "-quality", str(quality), *pixel, target], check=True)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", png, "-c:v", "libwebp", "-quality", str(quality), "-pix_fmt", "yuva420p", target], check=True)
     return target
 
 
@@ -253,11 +252,10 @@ def screen_corners(scene, pose):
 
 
 def glass_pass(scene, phone, materials):
-    """Only the reflections on the screen glass, over black (the stage adds it with mix-blend-mode: screen)."""
+    """Only the screen glass with its reflections, transparent elsewhere (the stage adds it with
+    mix-blend-mode: screen, which needs the alpha: the phone layers form an isolated group)."""
     hidden = holdout("Hidden")
     dress(phone, materials, {name: hidden for name in materials if name != "Screen"})
-    scene.render.film_transparent = False
-    scene.render.image_settings.color_mode = "RGB"
 
 
 # ---------- shots ----------
@@ -275,7 +273,7 @@ def shot_screen(name, draft, folder, layout):
     }
     if not draft:
         webp(base, os.path.join(SHOTS, f"{name}.webp"))
-        webp(glare, os.path.join(SHOTS, f"{name}-glare.webp"), alpha=False)
+        webp(glare, os.path.join(SHOTS, f"{name}-glare.webp"))
 
 
 def shot_back(draft, folder):
