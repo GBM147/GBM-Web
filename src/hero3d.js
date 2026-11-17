@@ -1,5 +1,6 @@
-// Cena 3D do topo: um celular modelado no código que gira com a rolagem e
-// mostra os sites de exemplo e a conversa no WhatsApp.
+// Cena 3D da página: um celular modelado no código que acompanha a rolagem pela
+// página inteira (topo, planos e contato). A coreografia fica em public/animations.js,
+// que passa uma pose alvo; aqui a cena só chega nela de forma suave.
 // Empacotado por scripts/build-netlify.js em public/vendor/hero3d.js.
 import {
   AdditiveBlending, AmbientLight, BufferGeometry, CanvasTexture, Color, DirectionalLight, Float32BufferAttribute,
@@ -12,24 +13,8 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 
 const BODY = { width: 1, height: 2.06, depth: 0.105, radius: 0.15 };
 const SCREEN = { width: 0.92, height: 1.98, radius: 0.12 };
-const TAU = Math.PI * 2;
-
-// Poses along the scroll story (p = 0..1). x is multiplied by the layout side (0 on narrow screens).
-const KEYS = [
-  { p: 0, ry: -0.42, rx: 0.1, rz: 0.06, x: 0.95, y: -0.04, s: 1 },
-  { p: 0.16, ry: -0.3, rx: 0.06, rz: 0.04, x: 0.95, y: 0, s: 1 },
-  { p: 0.34, ry: -0.3 + TAU, rx: 0.05, rz: -0.04, x: 0.95, y: 0.05, s: 1.03 },
-  { p: 0.43, ry: 0.26 + TAU, rx: 0.06, rz: -0.03, x: 0.95, y: 0.03, s: 1.03 },
-  { p: 0.59, ry: 0.26 + TAU * 2, rx: 0.04, rz: 0.03, x: 1.02, y: 0, s: 1.02 },
-  { p: 0.68, ry: -0.18 + TAU * 2, rx: 0.06, rz: 0.04, x: 1.02, y: 0, s: 1.02 },
-  { p: 0.84, ry: TAU * 2, rx: 0, rz: 0, x: 0.72, y: 0.02, s: 1.16 },
-  { p: 1, ry: 0.08 + TAU * 2, rx: -0.02, rz: 0, x: 0.72, y: 0.04, s: 1.18 }
-];
-// Which site is on the screen: swaps happen while the phone shows its back.
-const SCREEN_AT = [{ until: 0.25, index: 0 }, { until: 0.51, index: 1 }, { until: 2, index: 2 }];
-const CHAT_FADE = [0.74, 0.84];
-
-const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const FOV = 30;
+const DISTANCE = 7;
 
 function roundedRect(width, height, radius) {
   const shape = new Shape();
@@ -104,7 +89,15 @@ const sparkTexture = () => canvasTexture(64, 64, (context) => {
   context.fillRect(0, 0, 64, 64);
 });
 
-export function createPhoneScene(canvas, { screens, motion = true, centered = false, onReady } = {}) {
+/**
+ * createPhoneScene(canvas, { screens, onReady })
+ * - setTarget({ x, y, h, rx, ry, rz }): x and y are offsets from the viewport center as a
+ *   fraction of its width and height (y up); h is the phone height as a fraction of the
+ *   viewport height. The phone eases toward the target every frame.
+ * - setScreen(a, b, mix, scroll): screen `a` scrolled by `scroll` (0..1), with screen `b` on top at `mix` opacity.
+ * - pointer(x, y), start(), stop(), jump(), dispose()
+ */
+export function createPhoneScene(canvas, { screens, onReady } = {}) {
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
@@ -112,25 +105,25 @@ export function createPhoneScene(canvas, { screens, motion = true, centered = fa
   const scene = new Scene();
   const pmrem = new PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  const camera = new PerspectiveCamera(30, 1, 0.1, 50);
-  camera.position.set(0, 0, 7);
+  const camera = new PerspectiveCamera(FOV, 1, 0.1, 50);
+  camera.position.set(0, 0, DISTANCE);
 
   scene.add(new AmbientLight(0xffffff, 0.25));
   const key = new DirectionalLight(0xffffff, 1.6);
   key.position.set(3, 4, 5);
   scene.add(key);
-  const rimLeft = new PointLight(0xff5a1f, 40, 9);
-  rimLeft.position.set(-2.4, -1.4, -1.6);
-  scene.add(rimLeft);
-  const rimRight = new PointLight(0xff9a64, 24, 9);
-  rimRight.position.set(2.6, 1.8, -1.2);
-  scene.add(rimRight);
 
-  // Phone: body, screen (two layers for cross-fades), gloss, island, back plate and cameras.
-  const phone = new Group();
+  // Phone and its lights move together, so the orange rim follows it across the page.
   const pivot = new Group();
+  const phone = new Group();
   pivot.add(phone);
   scene.add(pivot);
+  const rimLeft = new PointLight(0xff5a1f, 40, 9);
+  rimLeft.position.set(-2.4, -1.4, -1.6);
+  const rimRight = new PointLight(0xff9a64, 24, 9);
+  rimRight.position.set(2.6, 1.8, -1.2);
+  pivot.add(rimLeft, rimRight);
+
   const body = new Mesh(
     new RoundedBoxGeometry(BODY.width, BODY.height, BODY.depth, 6, BODY.radius),
     new MeshPhysicalMaterial({ color: new Color("#2b2a27"), metalness: 0.85, roughness: 0.3, clearcoat: 0.7, clearcoatRoughness: 0.2 })
@@ -162,17 +155,16 @@ export function createPhoneScene(canvas, { screens, motion = true, centered = fa
     phone.add(lens);
   }
 
-  // Sparks floating around the phone.
-  const COUNT = 140;
+  // Sparks floating around the phone (they travel with it).
+  const COUNT = 120;
   const seeds = [];
-  const points = new Float32Array(COUNT * 3);
   for (let i = 0; i < COUNT; i++) {
-    seeds.push({ x: (Math.random() - 0.5) * 6, y: (Math.random() - 0.5) * 4, z: (Math.random() - 0.5) * 3 - 0.5, speed: 0.08 + Math.random() * 0.18 });
+    seeds.push({ x: (Math.random() - 0.5) * 3.4, y: (Math.random() - 0.5) * 3.2, z: (Math.random() - 0.5) * 2 - 0.4, speed: 0.08 + Math.random() * 0.18 });
   }
   const sparkGeometry = new BufferGeometry();
-  sparkGeometry.setAttribute("position", new Float32BufferAttribute(points, 3));
-  const sparks = new Points(sparkGeometry, new PointsMaterial({ map: sparkTexture(), size: 0.06, transparent: true, opacity: 0.85, blending: AdditiveBlending, depthWrite: false }));
-  scene.add(sparks);
+  sparkGeometry.setAttribute("position", new Float32BufferAttribute(new Float32Array(COUNT * 3), 3));
+  const sparks = new Points(sparkGeometry, new PointsMaterial({ map: sparkTexture(), size: 0.05, transparent: true, opacity: 0.8, blending: AdditiveBlending, depthWrite: false }));
+  pivot.add(sparks);
 
   // Screen textures: tall prints that scroll inside the screen.
   const loader = new TextureLoader();
@@ -187,7 +179,11 @@ export function createPhoneScene(canvas, { screens, motion = true, centered = fa
     }, undefined, reject);
   })));
 
-  const state = { progress: 0, side: 1, narrow: false, override: null, pointerX: 0, pointerY: 0, tiltX: 0, tiltY: 0, running: false, frame: 0, time: 0, last: 0 };
+  const target = { x: 0, y: 0, h: 0.6, rx: 0, ry: 0, rz: 0 };
+  const current = { ...target };
+  const screen = { a: 0, b: 3, mix: 0, scroll: 0 };
+  const state = { pointerX: 0, pointerY: 0, tiltX: 0, tiltY: 0, running: false, frame: 0, time: 0, last: 0, width: 1, height: 1 };
+
   const windowFor = (texture, scroll) => {
     // Show a screen-shaped window of the print, moving down by `scroll` (0..1 of the free space).
     const aspect = SCREEN.width / SCREEN.height;
@@ -195,7 +191,7 @@ export function createPhoneScene(canvas, { screens, motion = true, centered = fa
     texture.repeat.set(1, visible);
     texture.offset.set(0, (1 - visible) * (1 - scroll));
   };
-  const setScreen = (mesh, index, scroll) => {
+  const applyScreen = (mesh, index, scroll) => {
     const texture = textures[index];
     if (!texture) return;
     if (mesh.material.map !== texture) {
@@ -206,46 +202,34 @@ export function createPhoneScene(canvas, { screens, motion = true, centered = fa
     windowFor(texture, scroll);
   };
 
-  const pose = (p) => {
-    let i = 0;
-    while (i < KEYS.length - 2 && p > KEYS[i + 1].p) i++;
-    const a = KEYS[i];
-    const b = KEYS[i + 1];
-    const t = ease(MathUtils.clamp((p - a.p) / (b.p - a.p), 0, 1));
-    const mix = (key) => a[key] + (b[key] - a[key]) * t;
-    return { ry: mix("ry"), rx: mix("rx"), rz: mix("rz"), x: mix("x"), y: mix("y"), s: mix("s") };
-  };
-
+  const viewHeight = () => 2 * DISTANCE * Math.tan(MathUtils.degToRad(FOV / 2));
   const update = (delta) => {
-    const p = state.progress;
-    const current = pose(p);
-    const idle = motion ? Math.sin(state.time * 0.9) : 0;
+    // Frame-rate independent easing toward the target pose.
+    const follow = 1 - Math.exp(-delta * 9);
+    for (const key of Object.keys(current)) current[key] += (target[key] - current[key]) * follow;
     state.tiltX += (state.pointerY * 0.12 - state.tiltX) * 0.06;
     state.tiltY += (state.pointerX * 0.18 - state.tiltY) * 0.06;
-    pivot.position.set(current.x * state.side, current.y + idle * 0.03, 0);
-    pivot.scale.setScalar(current.s * (state.narrow ? 0.9 : 1));
+    const idle = Math.sin(state.time * 0.9);
+    const height = viewHeight();
+    const width = height * (state.width / state.height);
+    pivot.position.set(current.x * width, current.y * height + idle * 0.02, 0);
+    pivot.scale.setScalar(Math.max(0.0001, (current.h * height) / BODY.height));
     phone.rotation.set(current.rx + state.tiltX, current.ry + state.tiltY + idle * 0.03, current.rz);
-    // Site on screen (or the one picked with the style buttons), scrolling a little within each step.
-    const base = state.override ?? SCREEN_AT.find((entry) => p < entry.until).index;
-    const stepStart = [0, 0.25, 0.51][base] ?? 0.51;
-    setScreen(screenA, base, MathUtils.clamp((p - stepStart) / 0.25, 0, 1) * 0.4);
-    const chat = MathUtils.clamp((p - CHAT_FADE[0]) / (CHAT_FADE[1] - CHAT_FADE[0]), 0, 1);
-    setScreen(screenB, 3, 0);
-    screenB.material.opacity = chat;
-    screenB.visible = chat > 0;
-    // Sparks drift upward and wrap around.
+    applyScreen(screenA, screen.a, screen.scroll);
+    applyScreen(screenB, screen.b, 0);
+    screenB.material.opacity = screen.mix;
+    screenB.visible = screen.mix > 0.01;
     const position = sparkGeometry.attributes.position;
     seeds.forEach((seed, index) => {
-      if (motion) seed.y += seed.speed * delta;
-      if (seed.y > 2.2) seed.y = -2.2;
+      seed.y += seed.speed * delta;
+      if (seed.y > 1.6) seed.y = -1.6;
       position.setXYZ(index, seed.x + Math.sin(state.time * 0.4 + index) * 0.05, seed.y, seed.z);
     });
     position.needsUpdate = true;
-    sparks.material.opacity = 0.55 + 0.3 * Math.sin(p * Math.PI);
   };
 
   const render = (now = performance.now()) => {
-    const delta = state.last ? Math.min(0.05, (now - state.last) / 1000) : 0;
+    const delta = state.last ? Math.min(0.05, (now - state.last) / 1000) : 0.016;
     state.last = now;
     state.time += delta;
     update(delta);
@@ -261,36 +245,25 @@ export function createPhoneScene(canvas, { screens, motion = true, centered = fa
     const width = canvas.clientWidth;
     const height = canvas.clientHeight;
     if (!width || !height) return;
-    const narrow = width / height < 0.95;
-    state.narrow = narrow;
-    state.side = centered || narrow ? 0 : 1;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, narrow ? 1.5 : 2));
+    state.width = width;
+    state.height = height;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, width < 900 ? 1.5 : 1.75));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
-    // Keep the phone a comfortable size on tall, narrow screens.
-    camera.position.z = centered ? (narrow ? 6.1 : 5.5) : narrow ? 7.6 : 7;
     camera.updateProjectionMatrix();
     if (!state.running) render();
   };
   const observer = new ResizeObserver(resize);
   observer.observe(canvas);
-
   ready.then(() => { resize(); render(); onReady?.(); }).catch(() => {});
 
   return {
     ready,
-    setProgress(value) {
-      state.progress = MathUtils.clamp(value, 0, 1);
-      if (!state.running) render();
-    },
-    showScreen(index) {
-      state.override = index;
-      if (!state.running) render();
-    },
-    pointer(x, y) {
-      state.pointerX = x;
-      state.pointerY = y;
-    },
+    setTarget(pose) { Object.assign(target, pose); },
+    setScreen(a, b, mix, scroll) { Object.assign(screen, { a, b, mix, scroll }); },
+    // Skip the easing (first frame, or after a jump through the page).
+    jump() { Object.assign(current, target); if (!state.running) render(); },
+    pointer(x, y) { state.pointerX = x; state.pointerY = y; },
     start() {
       if (state.running) return;
       state.running = true;

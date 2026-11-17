@@ -36,54 +36,46 @@ function createNode(tagName, className, text) {
   return node;
 }
 
+// Plans are steps of the pricing story (the static markup in index.html mirrors this).
 function renderPlans() {
-  const grid = query("#pricingGrid");
-  if (!grid || !Array.isArray(SITE_CONFIG.plans) || !SITE_CONFIG.plans.length) return;
-  const fragment = document.createDocumentFragment();
-  SITE_CONFIG.plans.forEach((plan) => {
-    const card = createNode("article", `price-card${plan.featured ? " featured" : ""}`);
-    card.dataset.reveal = "";
-    card.append(
-      createNode("span", "price-tag", plan.featured ? "Recomendado" : "Plano"),
-      createNode("h3", "", plan.name),
-      createNode("p", "price-desc", plan.description)
-    );
-    const price = createNode("div", "price-value");
-    price.append(createNode("strong", "", plan.price), createNode("small", "", "por projeto"));
-    card.append(price);
+  const container = query("#plansPanels");
+  if (!container || !Array.isArray(SITE_CONFIG.plans) || !SITE_CONFIG.plans.length) return;
+  container.querySelectorAll("[data-plan-card]").forEach((panel) => panel.remove());
+  SITE_CONFIG.plans.forEach((plan, index) => {
+    const panel = createNode("article", `story-panel plan-panel${plan.featured ? " featured" : ""}`);
+    panel.dataset.step = String(index + 1);
+    panel.dataset.planCard = "";
+    const value = String(plan.price).replace(/\D/g, "");
+    const price = createNode("p", "plan-price");
+    const amount = createNode("strong", "", value);
+    amount.dataset.value = value;
+    price.append(createNode("span", "", "R$"), amount, createNode("small", "", "por projeto"));
+    panel.append(createNode("p", "price-tag", plan.featured ? "Recomendado" : "Plano"), createNode("h3", "plan-name", plan.name), price, createNode("p", "price-desc", plan.description));
     if (plan.idealFor) {
       const audience = createNode("p", "price-audience");
       audience.append(createNode("span", "", "Ideal para"), document.createTextNode(plan.idealFor));
-      card.append(audience);
+      panel.append(audience);
     }
-    card.append(createNode("p", "price-includes", "O que está incluído"));
     const features = createNode("ul", "price-features");
     (plan.features || []).forEach((feature) => {
-      if (typeof feature === "string") {
-        features.append(createNode("li", "", feature));
-      } else if (feature?.title) {
-        const item = createNode("li");
-        item.append(createNode("strong", "price-feature-title", feature.title));
-        if (feature.description) item.append(createNode("span", "price-feature-description", feature.description));
-        features.append(item);
-      }
+      const text = typeof feature === "string" ? feature : feature?.title;
+      if (text) features.append(createNode("li", "", text));
     });
-    card.append(features);
-    const link = createNode("a", "button button-primary price-button", `Escolher ${plan.name} `);
-    link.href = "#contato";
+    panel.append(features);
+    const link = createNode("a", "button button-accent price-button", `Escolher ${plan.name} `);
+    link.href = "#contactForm";
     link.dataset.plan = plan.name;
-    const arrow = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    arrow.setAttribute("class", "arrow");
-    arrow.setAttribute("viewBox", "0 0 24 24");
-    arrow.setAttribute("aria-hidden", "true");
-    const arrowUse = document.createElementNS("http://www.w3.org/2000/svg", "use");
-    arrowUse.setAttribute("href", "#icon-arrow");
-    arrow.append(arrowUse);
+    const arrow = createNode("span", "arrow");
+    const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    icon.setAttribute("aria-hidden", "true");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttribute("href", "#icon-arrow");
+    icon.append(use);
+    arrow.append(icon);
     link.append(arrow);
-    card.append(link);
-    fragment.append(card);
+    panel.append(link);
+    container.append(panel);
   });
-  grid.replaceChildren(fragment);
 }
 
 function initializePlanSelection() {
