@@ -195,12 +195,18 @@ app.post("/api/enviar-contato", contactLimiter, async (req, res) => {
   }
 });
 
-// Serve only the two browser bundles used by the frontend, from the installed
-// package. Essential interactions work even when animation scripts fail.
-const GSAP_DIST = path.dirname(require.resolve("gsap/dist/gsap.min.js"));
-for (const file of ["gsap.min.js", "ScrollTrigger.min.js"]) {
-  app.get(`/vendor/gsap/${file}`, (_req, res) => {
-    res.sendFile(path.join(GSAP_DIST, file));
+// Serve the browser libraries straight from the installed packages. The 3D
+// scene bundle (public/vendor/hero3d.js) is built when the server starts.
+// Essential interactions work even when animation scripts fail.
+const VENDOR_FILES = {
+  "gsap/gsap.min.js": "gsap/dist/gsap.min.js",
+  "gsap/ScrollTrigger.min.js": "gsap/dist/ScrollTrigger.min.js",
+  "lenis/lenis.min.js": "lenis/dist/lenis.min.js"
+};
+for (const [route, file] of Object.entries(VENDOR_FILES)) {
+  const resolved = require.resolve(file);
+  app.get(`/vendor/${route}`, (_req, res) => {
+    res.sendFile(resolved);
   });
 }
 
@@ -229,6 +235,7 @@ function escapeHtml(value) {
 }
 
 if (require.main === module) {
+  require("./scripts/build-netlify.js");
   app.listen(PORT, "0.0.0.0", (error) => {
     if (error) {
       console.error(`Não foi possível iniciar a GBM Web na porta ${PORT}: ${error.code}`);

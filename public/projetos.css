@@ -36,7 +36,6 @@ svg { display: block; width: 100%; height: auto; }
 .notice-cta { padding: 9px 16px; border-radius: 40px; background: #e65a32; color: #fff; font-weight: 700; white-space: nowrap; transition: background .2s; }
 .notice-cta:hover { background: #b93c1b; }
 .demo-panel { background: var(--paper); color: var(--ink); }
-.demo-panel + .demo-panel { border-top: 10px solid #211d29; }
 .shell { width: min(1280px, calc(100% - 112px)); margin-inline: auto; }
 .site-header { height: 108px; display: flex; align-items: center; justify-content: space-between; gap: 30px; border-bottom: 1px solid var(--line); }
 .brand { display: flex; flex-direction: column; line-height: .9; font-family: var(--serif); font-size: 31px; font-weight: 700; letter-spacing: -.05em; }

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<!-- Tela de conversa mostrada no celular 3D do topo (etapa 4). Capturada por scripts/capture-screens.mjs. -->
+<style>
+@font-face { font-family: "Manrope"; src: url("/assets/fonts/manrope-latin-wght-normal.woff2") format("woff2"); font-weight: 200 800; }
+@font-face { font-family: "DM Sans"; src: url("/assets/fonts/dm-sans-latin-wght-normal.woff2") format("woff2"); font-weight: 100 1000; }
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 390px; height: 844px; overflow: hidden; font-family: "DM Sans", sans-serif; color: #24231f; }
+.screen { display: flex; flex-direction: column; height: 100%; background: #ece5dd; }
+.head { display: flex; align-items: center; gap: 12px; padding: 58px 18px 14px; background: #1f3a30; color: #f3efe6; }
+.back { font-size: 26px; line-height: 1; opacity: .8; }
+.avatar { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: #e65a32; color: #fff; font-family: "Manrope", sans-serif; font-size: 19px; font-weight: 700; }
+.head b { display: block; font-family: "Manrope", sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -.02em; }
+.head small { display: block; font-size: 13px; opacity: .72; }
+.body { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 18px 14px; background-image: radial-gradient(#d6ccbf 1.2px, transparent 1.4px); background-size: 16px 16px; }
+.day { align-self: center; padding: 4px 12px; border-radius: 8px; background: #fffefa; color: #6b6a62; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.bubble { max-width: 78%; margin: 0; padding: 10px 13px 8px; border-radius: 14px; font-size: 16px; line-height: 1.38; box-shadow: 0 1px 1px #00000014; }
+.bubble time { display: block; margin-top: 4px; text-align: right; font-size: 11px; color: #8a877d; }
+.in { align-self: flex-start; background: #fffefa; border-top-left-radius: 4px; }
+.out { align-self: flex-end; background: #d5f3c6; border-top-right-radius: 4px; }
+.toast { align-self: center; display: flex; align-items: center; gap: 10px; margin-top: 18px; padding: 9px 18px 9px 9px; border-radius: 40px; background: #e65a32; color: #20201d; font-family: "Manrope", sans-serif; font-size: 16px; font-weight: 700; box-shadow: 0 14px 30px -12px #e65a3290; }
+.toast span { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #20201d; color: #f6f4ee; font-size: 14px; }
+.input { display: flex; align-items: center; gap: 10px; padding: 10px 12px 26px; }
+.input div { flex: 1; padding: 12px 16px; border-radius: 24px; background: #fffefa; color: #9d9a90; font-size: 15px; }
+.input i { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #1f8f4e; color: #fff; font-style: normal; font-size: 18px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="head"><span class="back">‹</span><span class="avatar">É</span><span><b>Época Barbearia</b><small>online</small></span></div>
+  <div class="body">
+    <span class="day">Hoje</span>
+    <p class="bubble in">Oi! Vi o site de vocês. Tem horário hoje às 18h?<time>17:42</time></p>
+    <p class="bubble out">Tem sim! Já deixei reservado ✂️<time>17:43</time></p>
+    <p class="bubble in">Perfeito, até mais tarde!<time>17:43</time></p>
+    <div class="toast"><span>+1</span>cliente pelo site</div>
+  </div>
+  <div class="input"><div>Mensagem</div><i>➤</i></div>
+</div>
+</body>
+</html>

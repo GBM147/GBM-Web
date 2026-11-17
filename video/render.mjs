@@ -2,16 +2,12 @@
 // Uso: npm run video                     → video/out/gbm-web-apresentacao-30s.mp4 e video/out/capa.png
 //      node video/render.mjs --preview 2,5.8,12  → um PNG por segundo pedido, para conferir cenas
 // Precisa de Playwright (Chromium) e ffmpeg instalados.
-import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
-import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
+import { require, root, startStaticServer, captureDemo } from "../scripts/lib/static-server.mjs";
 
-const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const out = path.join(root, "video", "out");
 const FPS = 30;
 const DURATION = 30;
@@ -19,26 +15,8 @@ const COVER_AT = 2.2;
 const DEMOS = ["barbearia", "restaurante", "petshop"];
 const previewIndex = process.argv.indexOf("--preview");
 const previewTimes = previewIndex > -1 ? process.argv[previewIndex + 1].split(",").map(Number) : null;
-
-// Serves the site (public/), the GSAP bundles and this folder from one local address.
-const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".woff2": "font/woff2" };
-const routes = [
-  ["/video/", path.join(root, "video")],
-  ["/vendor/gsap/", path.dirname(require.resolve("gsap/dist/gsap.min.js"))],
-  ["/", path.join(root, "public")]
-];
-const server = http.createServer((request, response) => {
-  const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
-  const [prefix, folder] = routes.find(([start]) => pathname.startsWith(start));
-  let file = path.join(folder, pathname.slice(prefix.length));
-  if (!file.startsWith(folder)) { response.writeHead(403).end(); return; }
-  if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, "index.html");
-  if (!fs.existsSync(file)) { response.writeHead(404).end(); return; }
-  response.writeHead(200, { "content-type": TYPES[path.extname(file)] || "application/octet-stream" });
-  fs.createReadStream(file).pipe(response);
-});
-await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-const base = `http://127.0.0.1:${server.address().port}`;
+const server = await startStaticServer();
+const base = server.base;
 const browser = await chromium.launch();
 
 try {
@@ -46,11 +24,7 @@ try {
   fs.mkdirSync(path.join(out, "screens"), { recursive: true });
   const shots = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, reducedMotion: "reduce" });
   const shot = await shots.newPage();
-  for (const demo of DEMOS) {
-    await shot.goto(`${base}/projetos.html#${demo}`, { waitUntil: "networkidle" });
-    await shot.evaluate(() => document.fonts.ready);
-    await shot.screenshot({ path: path.join(out, "screens", `${demo}.png`), fullPage: true, clip: { x: 0, y: 0, width: 390, height: 1700 } });
-  }
+  for (const demo of DEMOS) await captureDemo(shot, base, demo, path.join(out, "screens", `${demo}.png`), 1700);
   await shots.close();
 
   // 2. Load the stage and step its timeline frame by frame.

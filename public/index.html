@@ -13,6 +13,7 @@
   <link rel="preload" href="/assets/fonts/manrope-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/dm-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/styles.css">
+  <script>try{if(!sessionStorage.getItem("gbm-intro")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("intro")}catch(e){}</script>
 </head>
 <body>
   <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="0" height="0">
@@ -64,6 +65,7 @@
       </symbol>
     </defs>
   </svg>
+  <div class="intro-loader" aria-hidden="true"><div class="intro-inner"><svg class="intro-mark" viewBox="0 0 40 40"><path d="M28 10a14 14 0 1 0 5 14H20" pathLength="1"/><path d="M25 4h11v11" pathLength="1"/><path d="m24 16 12-12" pathLength="1"/></svg><span class="intro-count">0</span></div></div>
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
   <header class="site-header">
@@ -86,61 +88,48 @@
 
   <main id="conteudo">
     <section class="hero" id="inicio" aria-labelledby="heroTitle">
-      <canvas class="hero-dots" aria-hidden="true"></canvas>
-      <div class="container hero-grid">
-        <div class="hero-copy">
-          <p class="hero-kicker"><span class="status-dot" aria-hidden="true"></span><span class="sr-only">Sites para pequenas empresas</span><span class="kicker-live" aria-hidden="true">Sites para <span class="kicker-word"><span data-live-kicker>pequenas empresas</span></span></span></p>
-          <h1 class="hero-title" id="heroTitle"><span class="sr-only">Seu negócio, uma presença à altura</span><span class="line" aria-hidden="true"><span class="line-inner">Seu negócio</span></span><span class="line" aria-hidden="true"><span class="line-inner">Uma presença</span></span><span class="line" aria-hidden="true"><span class="line-inner"><em>à altura</em><svg class="title-spark" aria-hidden="true"><use href="#icon-spark"/></svg></span></span></h1>
-          <p class="hero-description">Sites profissionais para pequenas empresas de São Paulo — bonitos no celular e com o seu WhatsApp a um toque do cliente</p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="https://wa.me/5511958974750" data-whatsapp target="_blank" rel="noopener noreferrer" data-magnetic>Vamos criar seu site <span class="arrow"><svg aria-hidden="true"><use href="#icon-arrow"/></svg></span></a>
-            <a class="text-link" href="/projetos">Explore os projetos <svg class="arrow-down" aria-hidden="true"><use href="#icon-arrow"/></svg></a>
-          </div>
-          <p class="hero-note"><span class="note-line" aria-hidden="true"></span> A partir de R$ 300 · feito em São Paulo</p>
-        </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="hero-art-inner">
-            <div class="art-stage">
-              <div class="art-layer" data-depth="0.3"><div class="art-orbit"></div></div>
-              <div class="art-layer" data-depth="0.6"><div class="art-sphere orbit-object"></div></div>
-              <div class="art-layer" data-depth="1.6"><svg class="art-spark orbit-object"><use href="#icon-spark"/></svg></div>
-              <div class="art-layer" data-depth="0.5"><div class="art-label"><span><i class="live-dot"></i>Site no ar</span><b data-live-name>Época Barbearia</b></div></div>
-              <div class="art-layer" data-depth="1"><div class="hero-browser">
-                <div class="browser-bar"><div class="browser-dots"><i></i><i></i><i></i></div><span class="browser-url" data-live-url>epoca.barbearia</span><svg><use href="#icon-arrow"/></svg></div>
-                <div class="mock-screens">
-                  <div class="mock-site-main mock-barber" data-slide>
-                    <div class="mock-brand">ÉPOCA<span>BARBEARIA</span><small>ESTILO QUE FICA</small></div>
-                    <div class="mock-layout"><div class="mock-copy"><small>O SEU TEMPO, O SEU ESTILO</small><strong>Clássico<br>Sem ser<br>igual</strong><span class="mock-button">Agendar horário</span></div><svg class="mock-illustration" viewBox="0 0 300 340"><use href="#barber-art"/></svg></div>
-                    <div class="mock-bottom"><span>Corte · Barba · Cuidado</span><span>São Paulo, SP</span></div>
-                  </div>
-                  <div class="mock-site-main mock-food" data-slide>
-                    <div class="mock-brand">terra &amp; mesa<span>COZINHA DE AFETO</span><small>CARDÁPIO · PEDIDOS</small></div>
-                    <div class="mock-layout"><div class="mock-copy"><small>COMIDA BOA, SEM PRESSA</small><strong>Da terra<br>à mesa<br><em>com afeto</em></strong><span class="mock-button">Ver cardápio</span></div><svg class="mock-illustration" viewBox="0 0 320 320"><use href="#food-art"/></svg></div>
-                    <div class="mock-bottom"><span>Almoço · Jantar · Encomendas</span><span>São Paulo, SP</span></div>
-                  </div>
-                  <div class="mock-site-main mock-pet" data-slide>
-                    <div class="mock-brand">pata club<span>BANHO &amp; TOSA</span><small>✦ PARA MELHORES AMIGOS</small></div>
-                    <div class="mock-layout"><div class="mock-copy"><small>CARINHO EM CADA DETALHE</small><strong>Amor em<br>cada<br><em>cuidado</em></strong><span class="mock-button">Agendar banho</span></div><svg class="mock-illustration" viewBox="0 0 300 320"><use href="#pet-art"/></svg></div>
-                    <div class="mock-bottom"><span>Banho · Tosa · Carinho</span><span>São Paulo, SP</span></div>
-                  </div>
-                </div>
-              </div></div>
-              <div class="art-layer" data-depth="1.8"><div class="hero-phone">
-                <div class="phone-speaker"></div>
-                <div class="phone-content chat">
-                  <div class="chat-head"><span class="chat-avatar" data-live-initial>É</span><span><b data-live-name>Época Barbearia</b><small>online</small></span></div>
-                  <div class="chat-body">
-                    <span class="chat-day">Hoje</span>
-                    <div class="chat-in"><p class="chat-bubble in" data-live-msg>Oi! Vi o site de vocês. Tem horário hoje às 18h?</p><p class="chat-typing"><i></i><i></i><i></i></p></div>
-                    <p class="chat-bubble out" data-live-reply>Tem sim! Já deixei reservado ✂️</p>
-                  </div>
-                </div>
-              </div></div>
-              <div class="art-layer" data-depth="2.2"><div class="live-toast"><span>+1</span>cliente pelo site</div></div>
+      <div class="story-stage">
+        <div class="container story-grid">
+          <div class="story-copy">
+            <div class="story-panel hero-copy" data-step="0">
+              <p class="hero-kicker"><span class="status-dot" aria-hidden="true"></span> Sites para pequenas empresas</p>
+              <h1 class="hero-title" id="heroTitle"><span class="sr-only">Seu negócio, uma presença à altura</span><span class="line" aria-hidden="true"><span class="line-inner">Seu negócio</span></span><span class="line" aria-hidden="true"><span class="line-inner">Uma presença</span></span><span class="line" aria-hidden="true"><span class="line-inner"><em>à altura</em><svg class="title-spark" aria-hidden="true"><use href="#icon-spark"/></svg></span></span></h1>
+              <p class="hero-description">Sites profissionais para pequenas empresas de São Paulo — bonitos no celular e com o seu WhatsApp a um toque do cliente</p>
+              <div class="hero-actions">
+                <a class="button button-primary" href="https://wa.me/5511958974750" data-whatsapp target="_blank" rel="noopener noreferrer" data-magnetic>Vamos criar seu site <span class="arrow"><svg aria-hidden="true"><use href="#icon-arrow"/></svg></span></a>
+                <a class="text-link" href="/projetos">Explore os projetos <svg class="arrow-down" aria-hidden="true"><use href="#icon-arrow"/></svg></a>
+              </div>
+              <p class="hero-note"><span class="note-line" aria-hidden="true"></span> A partir de R$ 300 · feito em São Paulo</p>
             </div>
-            <span class="art-caption">O cliente encontra o site e chama no seu WhatsApp</span>
+            <div class="story-panel" data-step="1">
+              <p class="story-num">100<small>%</small></p>
+              <p class="story-line">Feito para<br><em>o celular.</em></p>
+              <p class="story-text">Rápido, fácil de navegar e pronto para o cliente que chega pelo Google ou pelo Instagram</p>
+            </div>
+            <div class="story-panel" data-step="2">
+              <p class="story-num">3</p>
+              <p class="story-line">Um site.<br><em>Três estilos.</em></p>
+              <div class="story-swatches" role="group" aria-label="Trocar o exemplo mostrado no celular">
+                <button type="button" data-screen="0" aria-pressed="false"><i style="--swatch:#b45a3b"></i>Barbearia</button>
+                <button type="button" data-screen="1" aria-pressed="false"><i style="--swatch:#5d7b45"></i>Restaurante</button>
+                <button type="button" data-screen="2" aria-pressed="true"><i style="--swatch:#8d55c8"></i>Pet shop</button>
+              </div>
+              <a class="text-link" href="/projetos">Ver os exemplos completos <svg aria-hidden="true"><use href="#icon-arrow"/></svg></a>
+            </div>
+            <div class="story-panel" data-step="3">
+              <p class="story-num">1<small> toque</small></p>
+              <p class="story-line">Do site direto<br><em>pro seu WhatsApp.</em></p>
+              <a class="button button-accent" href="https://wa.me/5511958974750" data-whatsapp target="_blank" rel="noopener noreferrer" data-magnetic>Quero um site assim <span class="arrow"><svg aria-hidden="true"><use href="#icon-arrow"/></svg></span></a>
+            </div>
+          </div>
+          <div class="story-visual" aria-hidden="true">
+            <p class="story-word">SITE</p>
+            <div class="story-glow"></div>
+            <div class="poster-phone"><img src="/assets/screens/barbearia.webp" alt="" width="585" height="2250" decoding="async"></div>
+            <canvas class="story-canvas"></canvas>
           </div>
         </div>
+        <ol class="story-dots" aria-hidden="true"><li class="is-active"></li><li></li><li></li><li></li></ol>
       </div>
       <div class="marquee-band" aria-hidden="true"><div class="marquee-track"><div class="marquee-group"><span>Barbearias</span><svg><use href="#icon-spark"/></svg><em>restaurantes</em><svg><use href="#icon-spark"/></svg><span>Pet shops</span><svg><use href="#icon-spark"/></svg><em>oficinas</em><svg><use href="#icon-spark"/></svg><span>Salões</span><svg><use href="#icon-spark"/></svg><em>clínicas</em><svg><use href="#icon-spark"/></svg><span>Lojas</span><svg><use href="#icon-spark"/></svg><em>academias</em><svg><use href="#icon-spark"/></svg></div><div class="marquee-group"><span>Barbearias</span><svg><use href="#icon-spark"/></svg><em>restaurantes</em><svg><use href="#icon-spark"/></svg><span>Pet shops</span><svg><use href="#icon-spark"/></svg><em>oficinas</em><svg><use href="#icon-spark"/></svg><span>Salões</span><svg><use href="#icon-spark"/></svg><em>clínicas</em><svg><use href="#icon-spark"/></svg><span>Lojas</span><svg><use href="#icon-spark"/></svg><em>academias</em><svg><use href="#icon-spark"/></svg></div></div></div>
     </section>
@@ -163,6 +152,7 @@
   <a class="whatsapp-float" href="https://wa.me/5511958974750" data-whatsapp target="_blank" rel="noopener noreferrer" aria-label="Conversar com a GBM Web pelo WhatsApp"><svg aria-hidden="true"><use href="#icon-whatsapp"/></svg><span>Vamos conversar</span></a>
   <script src="/vendor/gsap/gsap.min.js"></script>
   <script src="/vendor/gsap/ScrollTrigger.min.js"></script>
+  <script src="/vendor/lenis/lenis.min.js"></script>
   <script type="module" src="/app.js"></script>
 </body>
 </html>
