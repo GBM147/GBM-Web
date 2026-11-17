@@ -354,7 +354,6 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offs
 
 /* Home in three parts: hero (with the segment band as its base), plans and contact */
 .hero { padding-bottom: 0; }
-.hero .marquee-band { position: relative; z-index: 1; background: var(--paper); }
 .contact-steps { display: grid; grid-template-columns: repeat(2, max-content); gap: 12px 28px; margin: 26px 0 0; padding: 0; list-style: none; }
 .contact-steps li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #e6e3da; }
 .contact-steps b { display: grid; place-items: center; width: 24px; height: 24px; flex-shrink: 0; border: 1px solid #5a5a52; border-radius: 50%; color: #f09070; font-size: 11px; font-weight: 600; }
@@ -473,7 +472,6 @@ html.has-3d .scene-canvas { opacity: 1; }
 .button-primary:hover { background: #f47a55; }
 .text-link { border-color: #6d6c64; }
 .text-link:hover { color: #f09070; border-color: #f09070; }
-.hero .marquee-band { z-index: 2; background: var(--ink); border-color: #3a3a34; }
 .marquee-group span { color: var(--paper); }
 .marquee-group em { color: var(--orange); }
 
@@ -548,3 +546,15 @@ html.has-3d .scene-canvas { opacity: 1; }
 }
 
 html.scene-off .scene-canvas { opacity: 0; }
+
+/* Harmony between scenes: transparent stages over one dark page, and a single glow
+   that travels with the 3D phone instead of a separate background per section. */
+.story-stage, .plans-stage, .contact-stage { background: transparent; }
+.marquee-band { position: relative; z-index: 2; background: var(--ink); border-color: #3a3a34; }
+.scene-glow { position: fixed; left: 0; top: 0; z-index: 0; width: 1px; height: 1px; pointer-events: none; opacity: 0; transition: opacity .8s ease; }
+.scene-glow::before, .scene-glow::after { content: ""; position: absolute; left: 0; top: 0; border-radius: 50%; transform: translate(-50%, -50%); }
+.scene-glow::before { width: 120vmin; height: 95vmin; background: radial-gradient(closest-side, rgb(110 40 16 / 75%), rgb(74 31 15 / 35%) 55%, rgb(32 32 29 / 0%)); }
+.scene-glow::after { top: calc(var(--glow-floor, 220px)); width: calc(var(--glow-width, 360px)); height: calc(var(--glow-width, 360px) * .28); background: radial-gradient(closest-side, rgb(255 110 60 / 70%), rgb(230 90 50 / 25%) 60%, rgb(230 90 50 / 0%)); filter: blur(18px); }
+html.has-3d .scene-glow { opacity: 1; }
+html.scene-off .scene-glow { opacity: 0; }
+html.has-3d .hero .story-glow { opacity: 0; transition: opacity .6s ease; }

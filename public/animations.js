@@ -214,7 +214,8 @@ function createChoreography({ hero, plans, contact, isDesktop }) {
       list.push(
         { start: hero.trigger.end, end: Math.max(hero.trigger.end + 1, plans.trigger.start), keys: [{ ...heroEnd, p: 0 }, { ...plansPoses[0], p: 1 }] },
         { start: plans.trigger.start, end: plans.trigger.end, keys: plansPoses },
-        { start: plans.trigger.end, end: Math.max(plans.trigger.end + 1, contact.trigger.start), keys: [{ ...plansEnd, p: 0 }, { ...contactPoses[0], p: 1 }] },
+        // The phone waits on the left while the last plan scrolls away, then crosses to the contact side.
+        { start: plans.trigger.end, end: Math.max(plans.trigger.end + 1, contact.trigger.start), keys: [{ ...plansEnd, p: 0 }, { ...plansEnd, p: 0.55, ry: plansEnd.ry + Math.PI, y: plansEnd.y + 0.04, chat: 1 }, { ...contactPoses[0], p: 1 }] },
         { start: contact.trigger.start, end: contact.trigger.end, keys: contactPoses },
         { start: contact.trigger.end, end: contact.trigger.end + vh * 0.8, keys: [{ ...contactEnd, p: 0 }, away(contactEnd, 0.8)] }
       );
@@ -354,9 +355,7 @@ export function initAnimations({ skipIntro = false } = {}) {
           windows,
           length: isDesktop ? 3.2 : 3,
           build: (timeline) => {
-            timeline
-              .fromTo(pricing.querySelector(".story-word"), { scale: 0.9, opacity: 0.9 }, { scale: 1.25, opacity: 0.18, ease: "none", duration: 1 }, 0)
-              .fromTo(pricing.querySelector(".story-glow"), { scale: 0.85, opacity: 0.7 }, { scale: 1.25, opacity: 1, ease: "none", duration: 1 }, 0);
+            timeline.fromTo(pricing.querySelector(".story-word"), { scale: 0.9, opacity: 0.9 }, { scale: 1.25, opacity: 0.18, ease: "none", duration: 1 }, 0);
             panels.slice(1).forEach((panel, index) => {
               const [enter] = windows[index + 1];
               const amount = panel.querySelector(".plan-price strong");
@@ -388,7 +387,6 @@ export function initAnimations({ skipIntro = false } = {}) {
         timeline
           .fromTo(split.words, { opacity: 0.18, yPercent: 40 }, { opacity: 1, yPercent: 0, stagger: 0.08, duration: 0.3, ease: "power2.out" }, 0)
           .fromTo(contactSection.querySelector(".story-word"), { scale: 0.85, opacity: 0.25 }, { scale: 1.15, opacity: 0.9, ease: "none", duration: 1 }, 0)
-          .fromTo(contactSection.querySelector(".story-glow"), { scale: 0.8, opacity: 0.6 }, { scale: 1.25, opacity: 1, ease: "none", duration: 1 }, 0)
           .set({}, {}, 1);
         contact = {
           section: contactSection,
@@ -410,6 +408,7 @@ export function initAnimations({ skipIntro = false } = {}) {
 
       // 4. The 3D phone: one scene behind the whole page, loaded after the page is ready.
       const canvas = document.querySelector(".scene-canvas");
+      const glow = document.querySelector(".scene-glow");
       const intro3d = { lift: introduced ? 0 : 1 };
       if (hero && canvas) {
         const choreography = createChoreography({ hero, plans, contact, isDesktop });
@@ -433,6 +432,11 @@ export function initAnimations({ skipIntro = false } = {}) {
           scene.setTarget({ x: pose.x, y: pose.y - lift * 0.45, h: pose.h * (1 - lift * 0.2), rx: pose.rx, ry: pose.ry - lift * 0.8, rz: pose.rz });
           scene.setScreen(screen, CHAT, pose.chat, pose.scroll);
           if (first) { first = false; scene.jump(); }
+          const shown = scene.current();
+          const height = shown.h * window.innerHeight;
+          glow?.style.setProperty("transform", `translate3d(${(0.5 + shown.x) * window.innerWidth}px, ${(0.5 - shown.y) * window.innerHeight}px, 0)`);
+          glow?.style.setProperty("--glow-floor", `${Math.round(height * 0.5)}px`);
+          glow?.style.setProperty("--glow-width", `${Math.round(height * 0.95)}px`);
           if (pose.hidden !== hidden) {
             hidden = pose.hidden;
             root.classList.toggle("scene-off", hidden);

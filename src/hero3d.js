@@ -260,6 +260,8 @@ export function createPhoneScene(canvas, { screens, onReady } = {}) {
   return {
     ready,
     setTarget(pose) { Object.assign(target, pose); },
+    // The eased pose as it is drawn (used to move the page glow with the phone).
+    current: () => current,
     setScreen(a, b, mix, scroll) { Object.assign(screen, { a, b, mix, scroll }); },
     // Skip the easing (first frame, or after a jump through the page).
     jump() { Object.assign(current, target); if (!state.running) render(); },
