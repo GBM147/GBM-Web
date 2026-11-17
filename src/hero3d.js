@@ -3,39 +3,36 @@
 // que passa uma pose alvo; aqui a cena só chega nela de forma suave.
 // Empacotado por scripts/build-netlify.js em public/vendor/hero3d.js.
 import {
-  AdditiveBlending, AmbientLight, BufferGeometry, CanvasTexture, Color, DirectionalLight, Float32BufferAttribute,
-  Group, LinearFilter, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, PerspectiveCamera, PMREMGenerator,
-  PointLight, Points, PointsMaterial, Scene, Shape, ShapeGeometry, SRGBColorSpace, TextureLoader, WebGLRenderer,
-  ACESFilmicToneMapping, MathUtils, CylinderGeometry
+  AdditiveBlending, AmbientLight, BackSide, BoxGeometry, BufferGeometry, CanvasTexture, Color, DirectionalLight,
+  DoubleSide, Float32BufferAttribute, Group, LinearFilter, Mesh, MeshBasicMaterial, MeshPhysicalMaterial,
+  PerspectiveCamera, PlaneGeometry, PMREMGenerator, PointLight, Points, PointsMaterial, Scene, SRGBColorSpace,
+  TextureLoader, WebGLRenderer, ACESFilmicToneMapping, MathUtils
 } from "three";
-import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const BODY = { width: 1, height: 2.06, depth: 0.105, radius: 0.15 };
-const SCREEN = { width: 0.92, height: 1.98, radius: 0.12 };
+// Measures of public/assets/3d/phone.glb (modeled in art/phone.py).
+const BODY = { width: 1, height: 2.06, depth: 0.105 };
+const SCREEN = { width: 0.93, height: 1.99 };
 const FOV = 30;
 const DISTANCE = 7;
 
-function roundedRect(width, height, radius) {
-  const shape = new Shape();
-  const x = -width / 2;
-  const y = -height / 2;
-  shape.moveTo(x + radius, y);
-  shape.lineTo(x + width - radius, y);
-  shape.quadraticCurveTo(x + width, y, x + width, y + radius);
-  shape.lineTo(x + width, y + height - radius);
-  shape.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  shape.lineTo(x + radius, y + height);
-  shape.quadraticCurveTo(x, y + height, x, y + height - radius);
-  shape.lineTo(x, y + radius);
-  shape.quadraticCurveTo(x, y, x + radius, y);
-  const geometry = new ShapeGeometry(shape, 12);
-  // UVs from 0 to 1 across the rectangle, so a texture fills the rounded screen.
-  const position = geometry.attributes.position;
-  const uv = [];
-  for (let i = 0; i < position.count; i++) uv.push((position.getX(i) - x) / width, (position.getY(i) - y) / height);
-  geometry.setAttribute("uv", new Float32BufferAttribute(uv, 2));
-  return geometry;
+// Photo studio used only for reflections: dark room, white softboxes and orange light
+// strips (the GBM glow on metal and glass).
+function studio() {
+  const room = new Scene();
+  room.add(new Mesh(new BoxGeometry(12, 12, 12), new MeshBasicMaterial({ color: new Color(0.012, 0.011, 0.01), side: BackSide })));
+  const panel = (width, height, color, strength, position) => {
+    const mesh = new Mesh(new PlaneGeometry(width, height), new MeshBasicMaterial({ color: new Color(color).multiplyScalar(strength), side: DoubleSide }));
+    mesh.position.set(...position);
+    mesh.lookAt(0, 0, 0);
+    room.add(mesh);
+  };
+  panel(4.2, 2.6, "#ffffff", 3.4, [-2.6, 3.2, 3.2]);
+  panel(2.4, 1.8, "#fff4ea", 1.1, [3.2, 1.2, 2.8]);
+  panel(0.4, 7, "#ff5a1f", 7, [-3.8, 0, -1.4]);
+  panel(0.4, 7, "#ff8c4a", 4.5, [3.8, 0.4, -1.8]);
+  panel(6, 0.35, "#ffffff", 1.4, [0, -3.6, 1.2]);
+  return room;
 }
 
 function canvasTexture(width, height, draw) {
@@ -45,6 +42,7 @@ function canvasTexture(width, height, draw) {
   draw(canvas.getContext("2d"), width, height);
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
+  texture.flipY = false;
   return texture;
 }
 
@@ -71,15 +69,6 @@ const backTexture = () => canvasTexture(512, 1054, (context, width, height) => {
   context.fillText("GBM Web", width / 2, height / 2 + 120);
 });
 
-const glossTexture = () => canvasTexture(256, 512, (context, width, height) => {
-  const gradient = context.createLinearGradient(0, 0, width, height * 0.7);
-  gradient.addColorStop(0, "rgba(255,255,255,0.55)");
-  gradient.addColorStop(0.35, "rgba(255,255,255,0.08)");
-  gradient.addColorStop(0.36, "rgba(255,255,255,0)");
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, width, height);
-});
-
 const sparkTexture = () => canvasTexture(64, 64, (context) => {
   const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
   gradient.addColorStop(0, "rgba(255,255,255,1)");
@@ -97,14 +86,14 @@ const sparkTexture = () => canvasTexture(64, 64, (context) => {
  * - setScreen(a, b, mix, scroll): screen `a` scrolled by `scroll` (0..1), with screen `b` on top at `mix` opacity.
  * - pointer(x, y), start(), stop(), jump(), dispose()
  */
-export function createPhoneScene(canvas, { screens, onReady } = {}) {
+export function createPhoneScene(canvas, { screens, modelUrl = "/assets/3d/phone.glb", onReady } = {}) {
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   const scene = new Scene();
   const pmrem = new PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environment = pmrem.fromScene(studio(), 0.02).texture;
   const camera = new PerspectiveCamera(FOV, 1, 0.1, 50);
   camera.position.set(0, 0, DISTANCE);
 
@@ -124,36 +113,44 @@ export function createPhoneScene(canvas, { screens, onReady } = {}) {
   rimRight.position.set(2.6, 1.8, -1.2);
   pivot.add(rimLeft, rimRight);
 
-  const body = new Mesh(
-    new RoundedBoxGeometry(BODY.width, BODY.height, BODY.depth, 6, BODY.radius),
-    new MeshPhysicalMaterial({ color: new Color("#2b2a27"), metalness: 0.85, roughness: 0.3, clearcoat: 0.7, clearcoatRoughness: 0.2 })
-  );
-  phone.add(body);
-  const screenGeometry = roundedRect(SCREEN.width, SCREEN.height, SCREEN.radius);
-  const front = BODY.depth / 2 + 0.002;
-  const screenA = new Mesh(screenGeometry, new MeshBasicMaterial({ color: 0x111111, toneMapped: false }));
-  screenA.position.z = front;
-  const screenB = new Mesh(screenGeometry, new MeshBasicMaterial({ transparent: true, opacity: 0, toneMapped: false }));
-  screenB.position.z = front + 0.001;
-  const gloss = new Mesh(screenGeometry, new MeshBasicMaterial({ map: glossTexture(), transparent: true, opacity: 0.22, depthWrite: false, toneMapped: false }));
-  gloss.position.z = front + 0.002;
-  const island = new Mesh(roundedRect(0.26, 0.075, 0.037), new MeshBasicMaterial({ color: 0x050505 }));
-  island.position.set(0, SCREEN.height / 2 - 0.08, front + 0.003);
-  phone.add(screenA, screenB, gloss, island);
-  const back = new Mesh(roundedRect(BODY.width - 0.02, BODY.height - 0.02, BODY.radius), new MeshPhysicalMaterial({ map: backTexture(), metalness: 0.4, roughness: 0.45, clearcoat: 1, clearcoatRoughness: 0.15 }));
-  back.position.z = -BODY.depth / 2 - 0.002;
-  back.rotation.y = Math.PI;
-  phone.add(back);
-  const bump = new Mesh(new RoundedBoxGeometry(0.36, 0.36, 0.04, 4, 0.09), new MeshPhysicalMaterial({ color: 0x23221f, metalness: 0.7, roughness: 0.25, clearcoat: 1 }));
-  bump.position.set(0.24, BODY.height / 2 - 0.27, -BODY.depth / 2 - 0.02);
-  phone.add(bump);
-  const lensMaterial = new MeshPhysicalMaterial({ color: 0x0b0b0c, metalness: 0.2, roughness: 0.05, clearcoat: 1 });
-  for (const [x, y] of [[0.17, 0.08], [0.31, -0.06], [0.17, -0.06]]) {
-    const lens = new Mesh(new CylinderGeometry(0.055, 0.055, 0.03, 32), lensMaterial);
-    lens.rotation.x = Math.PI / 2;
-    lens.position.set(x, BODY.height / 2 - 0.27 + y, -BODY.depth / 2 - 0.045);
-    phone.add(lens);
-  }
+  const metal = new MeshPhysicalMaterial({ color: new Color("#5b5953"), metalness: 1, roughness: 0.3, anisotropy: 0.6, clearcoat: 0.35, clearcoatRoughness: 0.2 });
+  const materials = {
+    Frame: metal,
+    Buttons: metal,
+    LensRing: new MeshPhysicalMaterial({ color: new Color("#3b3a36"), metalness: 1, roughness: 0.22 }),
+    Glass: new MeshPhysicalMaterial({ color: new Color("#050505"), roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.02 }),
+    Island: new MeshBasicMaterial({ color: 0x020202 }),
+    Back: new MeshPhysicalMaterial({ map: backTexture(), metalness: 0.15, roughness: 0.5, clearcoat: 0.8, clearcoatRoughness: 0.35 }),
+    Plateau: new MeshPhysicalMaterial({ color: new Color("#22211e"), metalness: 0.3, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.05 }),
+    LensGlass: new MeshPhysicalMaterial({ color: new Color("#090c13"), roughness: 0.02, clearcoat: 1, iridescence: 0.7, iridescenceIOR: 1.6 }),
+    Flash: new MeshPhysicalMaterial({ color: new Color("#efe3c6"), roughness: 0.3 }),
+    Port: new MeshBasicMaterial({ color: 0x050505 }),
+    Speaker: new MeshBasicMaterial({ color: 0x050505 })
+  };
+  const screenA = new Mesh(undefined, new MeshBasicMaterial({ color: 0x111111, toneMapped: false }));
+  const screenB = new Mesh(undefined, new MeshBasicMaterial({ transparent: true, opacity: 0, toneMapped: false }));
+  // Cover glass: only its reflections are added on top of the display.
+  const cover = new Mesh(undefined, new MeshPhysicalMaterial({ color: 0x000000, roughness: 0.03, clearcoat: 1, transparent: true, blending: AdditiveBlending, depthWrite: false, envMapIntensity: 0.9 }));
+  const model = new Promise((resolve, reject) => {
+    new GLTFLoader().load(modelUrl, (gltf) => {
+      gltf.scene.traverse((object) => {
+        if (!object.isMesh) return;
+        if (object.name === "Screen") {
+          for (const [layer, lift] of [[screenA, 0], [screenB, 0.0004], [cover, 0.0008]]) {
+            layer.geometry = object.geometry;
+            layer.position.copy(object.position);
+            layer.position.z += lift;
+            phone.add(layer);
+          }
+          object.visible = false;
+        } else if (materials[object.name]) {
+          object.material = materials[object.name];
+        }
+      });
+      phone.add(gltf.scene);
+      resolve();
+    }, undefined, reject);
+  });
 
   // Sparks floating around the phone (they travel with it).
   const COUNT = 120;
@@ -169,15 +166,16 @@ export function createPhoneScene(canvas, { screens, onReady } = {}) {
   // Screen textures: tall prints that scroll inside the screen.
   const loader = new TextureLoader();
   const textures = [];
-  const ready = Promise.all(screens.map((url, index) => new Promise((resolve, reject) => {
+  const ready = Promise.all([model, ...screens.map((url, index) => new Promise((resolve, reject) => {
     loader.load(url, (texture) => {
       texture.colorSpace = SRGBColorSpace;
+      texture.flipY = false;
       texture.minFilter = LinearFilter;
       texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
       textures[index] = texture;
       resolve();
     }, undefined, reject);
-  })));
+  }))]);
 
   const target = { x: 0, y: 0, h: 0.6, rx: 0, ry: 0, rz: 0 };
   const current = { ...target };
@@ -189,7 +187,7 @@ export function createPhoneScene(canvas, { screens, onReady } = {}) {
     const aspect = SCREEN.width / SCREEN.height;
     const visible = Math.min(1, (texture.image.width / aspect) / texture.image.height);
     texture.repeat.set(1, visible);
-    texture.offset.set(0, (1 - visible) * (1 - scroll));
+    texture.offset.set(0, (1 - visible) * scroll);
   };
   const applyScreen = (mesh, index, scroll) => {
     const texture = textures[index];

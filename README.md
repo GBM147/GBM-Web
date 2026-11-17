@@ -93,6 +93,9 @@ cada trecho da rolagem. No celular, o 3D aparece só no topo.
   `public/vendor/hero3d.js`, carregado só depois que a página aparece. Até lá,
   e com movimento reduzido, aparece uma imagem fixa do celular no topo e os
   planos ficam lado a lado.
+- `public/assets/3d/phone.glb`: o celular, modelado por código no Blender
+  (`art/phone.py`). Para refazer: crie um ambiente Python com
+  `pip install -r art/requirements.txt` e rode `python art/phone.py`.
 - `public/assets/screens/*.webp`: telas mostradas no celular. Refaça com
   `npm run screens` quando os exemplos de `/projetos` mudarem.
 - Rolagem suave (Lenis), abertura animada (só na primeira visita da sessão) e

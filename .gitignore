@@ -11,3 +11,6 @@ public/vendor/
 # Gerado por npm run video
 video/out/
 video/frames/
+
+# Gerado pelos scripts de art/
+art/out/
