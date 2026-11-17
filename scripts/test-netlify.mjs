@@ -80,8 +80,14 @@ test("HTML de e-mails é escapado", () => {
   assert.equal(escapeHtml('<script>"&'), "&lt;script&gt;&quot;&amp;");
 });
 
-test("build gera os arquivos GSAP necessários", () => {
-  for (const name of ["gsap.min.js", "ScrollTrigger.min.js"]) {
-    assert.equal(fs.existsSync(new URL("../public/vendor/gsap/" + name, import.meta.url)), true);
+test("build gera GSAP, Lenis e a cena 3D", () => {
+  for (const file of ["gsap/gsap.min.js", "gsap/ScrollTrigger.min.js", "lenis/lenis.min.js", "hero3d.js"]) {
+    assert.equal(fs.existsSync(new URL("../public/vendor/" + file, import.meta.url)), true, file);
+  }
+});
+
+test("telas do celular 3D existem", () => {
+  for (const name of ["barbearia", "restaurante", "petshop", "whatsapp"]) {
+    assert.equal(fs.existsSync(new URL(`../public/assets/screens/${name}.webp`, import.meta.url)), true, name);
   }
 });

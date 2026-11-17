@@ -7,3 +7,7 @@ npm-debug.log*
 
 # Gerado por npm run build:netlify
 public/vendor/
+
+# Gerado por npm run video
+video/out/
+video/frames/

@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>GBM Web — vídeo de apresentação</title>
+<!--
+  Palco de 1080x1920 (9:16) com uma única linha do tempo GSAP pausada em window.tl.
+  O video/render.mjs avança a linha do tempo quadro a quadro e grava o MP4.
+  Cenas: 0–3s gancho · 3–7s busca · 7–15s o site · 15–20s WhatsApp · 20–25s oferta · 25–30s contato.
+-->
+<style>
+@font-face { font-family: "Manrope"; src: url("/assets/fonts/manrope-latin-wght-normal.woff2") format("woff2"); font-weight: 200 800; }
+@font-face { font-family: "DM Sans"; src: url("/assets/fonts/dm-sans-latin-wght-normal.woff2") format("woff2"); font-weight: 100 1000; }
+:root {
+  --paper: #f6f4ee; --ink: #20201d; --muted: #66655f; --rule: #d9d5ca; --white: #fffefa;
+  --orange: #e65a32; --orange-dark: #b93c1b; --orange-soft: #f09070;
+  --heading: "Manrope", sans-serif; --body: "DM Sans", sans-serif;
+  --serif: Georgia, Caladea, "Liberation Serif", serif;
+  --c1: #ffbf86; --c2: #f98544; --c3: #e15c2d; --c4: #b73511; --c5: #7b2912;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: var(--paper); }
+body { font-family: var(--body); color: var(--ink); -webkit-font-smoothing: antialiased; }
+p, h1, h2 { margin: 0; }
+em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: -.03em; }
+.svg-defs { position: absolute; width: 0; height: 0; }
+.stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+.bg { position: absolute; inset: 0; background: var(--paper); }
+.dots { position: absolute; inset: 0; background-image: radial-gradient(#c9c2b2 2.2px, transparent 2.6px); background-size: 54px 54px; background-position: 27px 27px; opacity: .5; }
+.glow { position: absolute; left: 380px; top: -360px; width: 1100px; height: 1100px; border-radius: 50%; background: radial-gradient(circle, rgb(230 90 50 / 20%), transparent 64%); }
+.scene { position: absolute; inset: 0; visibility: hidden; }
+.wipe { position: absolute; inset: 0; z-index: 50; background: var(--orange); visibility: hidden; }
+.kicker { display: flex; align-items: center; gap: 16px; font-size: 30px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
+.kicker i { width: 16px; height: 16px; border-radius: 50%; background: var(--orange); }
+.title { font-family: var(--heading); font-weight: 600; letter-spacing: -.065em; line-height: 1.03; }
+.title em { color: var(--orange-dark); }
+.title > span { display: block; }
+.char { display: inline-block; }
+
+/* 1 · Gancho */
+.s-hook .kicker { position: absolute; left: 80px; top: 470px; }
+.hook-title { position: absolute; left: 76px; top: 550px; font-size: 166px; }
+.hook-title em { font-size: 1.08em; }
+.hook-title .spark { display: inline-block; width: 110px; height: 110px; margin-left: 26px; color: var(--orange); vertical-align: 6px; }
+.s-hook .sub { position: absolute; left: 80px; top: 1140px; width: 800px; font-size: 44px; line-height: 1.45; color: var(--muted); }
+
+/* 2 · Busca */
+.search { position: absolute; left: 72px; top: 330px; width: 936px; height: 126px; display: flex; align-items: center; gap: 26px; padding: 0 44px; border-radius: 70px; background: var(--white); box-shadow: 0 24px 60px -24px #29231b40, 0 2px 0 #00000008; font-size: 50px; }
+.search svg { width: 48px; height: 48px; flex-shrink: 0; color: var(--muted); }
+.query { white-space: pre; }
+.caret { display: inline-block; width: 4px; height: 58px; margin-left: -18px; background: var(--orange); }
+.results { position: absolute; left: 72px; top: 506px; width: 936px; display: grid; gap: 22px; }
+.result { display: flex; align-items: center; gap: 28px; padding: 28px 32px; border: 2px solid var(--rule); border-radius: 30px; background: var(--white); }
+.r-thumb { width: 96px; height: 96px; flex-shrink: 0; border-radius: 24px; background: linear-gradient(135deg, #e9e2d3, #d6cdbb); }
+.result > div:nth-child(2) { flex: 1; }
+.result b { display: block; font-family: var(--heading); font-size: 44px; font-weight: 700; letter-spacing: -.04em; }
+.result span.meta { display: block; margin-top: 6px; font-size: 30px; color: var(--muted); }
+.result span.meta i { font-style: normal; color: #e0a12a; letter-spacing: .05em; }
+.r-btn { padding: 14px 30px; border: 2px solid var(--ink); border-radius: 40px; font-size: 30px; font-weight: 600; }
+.r-none { padding: 14px 26px; border-radius: 40px; background: #f3dcd4; color: var(--orange-dark); font-size: 28px; font-weight: 700; letter-spacing: .02em; }
+.s-search .cap { position: absolute; left: 76px; top: 1140px; font-size: 112px; }
+
+/* 3 · O site */
+.s-site .cap { position: absolute; left: 76px; top: 236px; font-size: 112px; }
+.sphere { position: absolute; left: 520px; top: 520px; width: 560px; height: 560px; border-radius: 50%; background: radial-gradient(circle at 29% 23%, var(--c1) 0%, var(--c2) 21%, var(--c3) 51%, var(--c4) 76%, var(--c5) 100%); box-shadow: inset -24px -30px 50px #81250e38; }
+.phone { position: absolute; left: 280px; top: 610px; width: 520px; height: 1080px; padding: 16px; border-radius: 74px; background: #1d1c19; box-shadow: 30px 60px 90px -40px #29231b80; }
+.phone::after { content: ""; position: absolute; left: 50%; top: 34px; width: 150px; height: 40px; margin-left: -75px; border-radius: 30px; background: #1d1c19; }
+.screen-wrap { position: relative; width: 488px; height: 1048px; overflow: hidden; border-radius: 58px; background: var(--white); }
+.screen { position: absolute; left: 0; top: 0; width: 488px; }
+.chips { position: absolute; left: 80px; top: 528px; height: 60px; }
+.chip { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 12px; padding: 12px 26px; border-radius: 40px; background: var(--ink); color: var(--paper); font-size: 28px; font-weight: 600; white-space: nowrap; visibility: hidden; }
+.chip i { font-style: normal; color: var(--orange-soft); }
+.badge { position: absolute; display: flex; align-items: center; gap: 18px; padding: 22px 32px 22px 22px; border-radius: 30px; background: var(--white); box-shadow: 0 30px 60px -30px #29231b60; font-family: var(--heading); font-size: 36px; font-weight: 700; letter-spacing: -.03em; white-space: nowrap; }
+.badge b { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--orange); color: var(--white); font-size: 32px; }
+.badge-1 { left: 40px; top: 940px; }
+.badge-2 { left: 520px; top: 1290px; }
+
+/* 4 · WhatsApp */
+.s-chat .cap { position: absolute; left: 76px; top: 236px; font-size: 112px; color: var(--paper); }
+.s-chat .cap em { color: var(--orange-soft); }
+.chat { position: absolute; left: 90px; top: 590px; width: 900px; overflow: hidden; border-radius: 44px; background: #ece5dd; box-shadow: 0 50px 90px -40px #000000a0; }
+.chat-head { display: flex; align-items: center; gap: 22px; padding: 30px 36px; background: #1f3a30; color: #f3efe6; }
+.avatar { display: grid; place-items: center; width: 76px; height: 76px; border-radius: 50%; background: var(--orange); color: #fff; font-family: var(--heading); font-size: 38px; font-weight: 700; }
+.chat-head b { display: block; font-family: var(--heading); font-size: 38px; font-weight: 700; letter-spacing: -.02em; }
+.chat-head small { display: block; font-size: 26px; opacity: .7; }
+.chat-body { position: relative; display: flex; flex-direction: column; gap: 22px; min-height: 560px; padding: 36px 32px 44px; background-image: radial-gradient(#d6ccbf 2px, transparent 2.4px); background-size: 26px 26px; }
+.bubble { max-width: 640px; padding: 22px 28px; border-radius: 30px; font-size: 38px; line-height: 1.38; color: #24231f; box-shadow: 0 2px 2px #00000014; }
+.bubble.in { align-self: flex-start; background: var(--white); border-top-left-radius: 8px; transform-origin: 0 100%; }
+.bubble.out { align-self: flex-end; background: #d5f3c6; border-top-right-radius: 8px; transform-origin: 100% 100%; }
+.typing { position: absolute; left: 32px; top: 36px; display: flex; gap: 10px; padding: 28px 30px; border-radius: 30px; border-top-left-radius: 8px; background: var(--white); }
+.typing i { width: 14px; height: 14px; border-radius: 50%; background: #8f8b80; }
+.toast { position: absolute; left: 330px; top: 1290px; display: flex; align-items: center; gap: 20px; padding: 20px 40px 20px 20px; border-radius: 60px; background: var(--orange); color: var(--ink); font-family: var(--heading); font-size: 42px; font-weight: 700; letter-spacing: -.03em; box-shadow: 0 30px 60px -20px #e65a3290; }
+.toast b { display: grid; place-items: center; width: 70px; height: 70px; border-radius: 50%; background: var(--ink); color: var(--paper); font-size: 32px; }
+.burst { position: absolute; width: 50px; height: 50px; color: var(--orange-soft); }
+.s-chat .note { position: absolute; left: 90px; top: 1420px; font-size: 28px; color: #9d9a90; }
+
+/* 5 · Oferta */
+.s-offer .kicker { position: absolute; left: 80px; top: 280px; color: var(--orange-dark); }
+.items { position: absolute; left: 76px; top: 370px; display: grid; gap: 34px; }
+.item { display: flex; align-items: center; gap: 30px; font-family: var(--heading); font-size: 60px; font-weight: 600; letter-spacing: -.045em; }
+.check { display: grid; place-items: center; width: 82px; height: 82px; flex-shrink: 0; border-radius: 50%; background: var(--orange); }
+.check svg { width: 42px; height: 42px; }
+.price-box { position: absolute; left: 76px; top: 940px; width: 928px; padding-top: 50px; border-top: 3px solid var(--ink); }
+.price-box .from { font-size: 44px; color: var(--muted); }
+.price-num { display: block; margin-top: -6px; font-family: var(--heading); font-size: 250px; font-weight: 700; letter-spacing: -.07em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.price-box .once { margin-top: 10px; font-size: 40px; font-weight: 600; }
+.price-box .extra { margin-top: 10px; font-size: 32px; color: var(--muted); }
+
+/* 6 · Contato */
+.s-cta .brand { position: absolute; left: 80px; top: 510px; display: flex; align-items: center; gap: 30px; color: var(--paper); }
+.s-cta .brand svg { width: 150px; height: 150px; color: var(--orange); }
+.s-cta .brand strong { font-family: var(--heading); font-size: 150px; font-weight: 700; letter-spacing: -.06em; line-height: 1; }
+.s-cta .tag { position: absolute; left: 86px; top: 710px; font-size: 32px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #bdbdb2; }
+.cta-pill { position: absolute; left: 80px; top: 870px; display: flex; align-items: center; gap: 24px; padding: 34px 50px 34px 40px; border-radius: 80px; background: var(--orange); color: var(--ink); font-family: var(--heading); font-size: 58px; font-weight: 700; letter-spacing: -.035em; }
+.cta-pill svg { width: 70px; height: 70px; }
+.s-cta .phone-number { position: absolute; left: 80px; top: 1070px; font-family: var(--heading); font-size: 112px; font-weight: 600; letter-spacing: -.05em; color: var(--paper); }
+.s-cta .link { position: absolute; left: 84px; top: 1230px; font-size: 50px; font-weight: 600; color: var(--orange-soft); }
+.s-cta .place { position: absolute; left: 84px; top: 1310px; font-size: 36px; color: #bdbdb2; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="bg"></div>
+  <div class="dots"></div>
+  <div class="glow"></div>
+
+  <section class="scene s-hook">
+    <p class="kicker"><i></i>GBM Web · sites para empresas</p>
+    <h1 class="title hook-title"><span>Sua empresa</span><span>ainda não</span><span><em>tem site?</em><svg class="spark"><use href="#icon-spark"/></svg></span></h1>
+    <p class="sub">Seus clientes procuram no Google antes de chamar</p>
+  </section>
+
+  <section class="scene s-search">
+    <div class="search"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><circle cx="21" cy="21" r="13"/><path d="m31 31 11 11"/></svg><span class="query"></span><i class="caret"></i></div>
+    <div class="results">
+      <div class="result"><div class="r-thumb"></div><div><b>Barbearia A</b><span class="meta"><i>★★★★★</i> 4,8 · Itaquera</span></div><span class="r-btn">Site</span></div>
+      <div class="result"><div class="r-thumb"></div><div><b>Barbearia B</b><span class="meta"><i>★★★★★</i> 4,7 · Itaquera</span></div><span class="r-btn">Site</span></div>
+      <div class="result is-you"><div class="r-thumb"></div><div><b>Sua barbearia</b><span class="meta"><i>★★★★★</i> 4,9 · Itaquera</span></div><span class="r-none">sem site</span></div>
+    </div>
+    <h2 class="title cap"><span>Quem não aparece,</span><span><em>não é escolhido</em></span></h2>
+  </section>
+
+  <section class="scene s-site">
+    <h2 class="title cap"><span>A GBM Web cria</span><span><em>o seu site</em></span></h2>
+    <div class="sphere"></div>
+    <div class="phone"><div class="screen-wrap">
+      <img class="screen" src="/video/out/screens/barbearia.png" alt="">
+      <img class="screen" src="/video/out/screens/restaurante.png" alt="">
+      <img class="screen" src="/video/out/screens/petshop.png" alt="">
+    </div></div>
+    <div class="chips">
+      <span class="chip">Exemplo de modelo <i>· Barbearia</i></span>
+      <span class="chip">Exemplo de modelo <i>· Restaurante</i></span>
+      <span class="chip">Exemplo de modelo <i>· Pet shop</i></span>
+    </div>
+    <div class="badge badge-1"><b>✓</b>Sua marca e suas cores</div>
+    <div class="badge badge-2"><b>✓</b>Feito para o seu negócio</div>
+  </section>
+
+  <section class="scene s-chat">
+    <h2 class="title cap"><span>Do site direto</span><span><em>pro seu WhatsApp</em></span></h2>
+    <div class="chat">
+      <div class="chat-head"><span class="avatar">É</span><span><b>Época Barbearia</b><small>online</small></span></div>
+      <div class="chat-body">
+        <p class="bubble in in-1">Oi! Vi o site de vocês. Tem horário hoje às 18h?</p>
+        <p class="bubble out">Tem sim! Já deixei reservado ✂️</p>
+        <p class="bubble in in-2">Perfeito, até mais tarde!</p>
+        <p class="typing"><i></i><i></i><i></i></p>
+      </div>
+    </div>
+    <div class="toast"><b>+1</b>cliente pelo site</div>
+    <svg class="burst burst-1" style="left:300px;top:1250px"><use href="#icon-spark"/></svg>
+    <svg class="burst burst-2" style="left:940px;top:1270px"><use href="#icon-spark"/></svg>
+    <svg class="burst burst-3" style="left:860px;top:1400px"><use href="#icon-spark"/></svg>
+    <p class="note">Exemplo de conversa</p>
+  </section>
+
+  <section class="scene s-offer">
+    <p class="kicker"><i></i>Plano Essencial</p>
+    <div class="items">
+      <div class="item"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#fffefa" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>Página com a sua marca</div>
+      <div class="item"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#fffefa" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>Feito para o celular</div>
+      <div class="item"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#fffefa" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>Botão do WhatsApp</div>
+      <div class="item"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#fffefa" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>Site publicado</div>
+    </div>
+    <div class="price-box">
+      <p class="from">A partir de</p>
+      <span class="price-num">R$ 300</span>
+      <p class="once">valor único pela criação do site</p>
+      <p class="extra">domínio e hospedagem à parte</p>
+    </div>
+  </section>
+
+  <section class="scene s-cta">
+    <div class="brand"><svg><use href="#brand-mark"/></svg><strong>GBM Web</strong></div>
+    <p class="tag">Sites para empresas</p>
+    <div class="cta-pill"><svg><use href="#icon-whatsapp"/></svg>Chame no WhatsApp</div>
+    <p class="phone-number">(11) 95897-4750</p>
+    <p class="link">gbm-web.netlify.app</p>
+    <p class="place">Cidade Líder · São Paulo</p>
+  </section>
+
+  <div class="wipe"></div>
+</div>
+
+<script src="/vendor/gsap/gsap.min.js"></script>
+<script>
+(async () => {
+  // Reuse the site's SVG symbols (logo, spark, WhatsApp) from the published page.
+  const page = new DOMParser().parseFromString(await (await fetch("/index.html")).text(), "text/html");
+  document.body.prepend(document.importNode(page.querySelector("svg.svg-defs"), true));
+  await Promise.all([
+    document.fonts.load('600 100px "Manrope"'), document.fonts.load('700 100px "Manrope"'),
+    document.fonts.load('400 40px "DM Sans"'), document.fonts.load('600 40px "DM Sans"'),
+    document.fonts.load('italic 400 100px Caladea')
+  ]);
+  await Promise.all([...document.images].map((image) => image.decode().catch(() => {})));
+
+  const $ = (selector) => document.querySelector(selector);
+  const $$ = (selector) => [...document.querySelectorAll(selector)];
+  gsap.set(".wipe", { yPercent: 100, visibility: "visible" });
+  const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
+  const show = (selector, at) => tl.set(selector, { autoAlpha: 1 }, at);
+  const hide = (selector, at) => tl.set(selector, { autoAlpha: 0 }, at);
+  const wipe = (at, color) => {
+    tl.set(".wipe", { backgroundColor: color, yPercent: 100 }, at)
+      .to(".wipe", { yPercent: 0, duration: .26, ease: "power3.in" }, at)
+      .to(".wipe", { yPercent: -100, duration: .38, ease: "power3.out" }, at + .3);
+  };
+  const exit = (selector, at) => tl.to(selector, { y: -70, autoAlpha: 0, duration: .32, ease: "power2.in", stagger: .04 }, at);
+  const splitChars = (root) => {
+    const chars = [];
+    const walk = (node) => [...node.childNodes].forEach((child) => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        const fragment = document.createDocumentFragment();
+        for (const letter of child.textContent) {
+          if (/\s/.test(letter)) { fragment.append(letter); continue; }
+          const span = document.createElement("span");
+          span.className = "char";
+          span.textContent = letter;
+          fragment.append(span);
+          chars.push(span);
+        }
+        child.replaceWith(fragment);
+      } else if (child.nodeType === Node.ELEMENT_NODE && child.namespaceURI !== "http://www.w3.org/2000/svg") {
+        walk(child);
+      }
+    });
+    walk(root);
+    return chars;
+  };
+
+  // 1 · Gancho (0–3s)
+  show(".s-hook", 0);
+  tl.from(".s-hook .kicker", { y: 30, autoAlpha: 0, duration: .6 }, .1);
+  tl.from(splitChars($(".hook-title")), { yPercent: 60, rotationX: -95, opacity: 0, transformOrigin: "50% 100%", transformPerspective: 700, stagger: .026, duration: .85, ease: "power4.out" }, .2);
+  tl.from(".hook-title .spark", { scale: 0, rotation: -220, duration: .8, ease: "back.out(2.2)" }, 1.05);
+  tl.from(".s-hook .sub", { y: 36, autoAlpha: 0, duration: .6 }, 1.3);
+  exit([".s-hook .kicker", ".hook-title", ".s-hook .sub"], 2.7);
+  hide(".s-hook", 3.05);
+
+  // 2 · Busca (3–7s)
+  show(".s-search", 3.05);
+  tl.from(".search", { y: -70, autoAlpha: 0, duration: .6 }, 3.05);
+  const query = "barbearia itaquera";
+  const typed = { length: 0 };
+  tl.fromTo(typed, { length: 0 }, { length: query.length, duration: 1.1, ease: "none", onUpdate: () => { $(".query").textContent = query.slice(0, Math.round(typed.length)); } }, 3.35);
+  tl.to(".caret", { opacity: 0, duration: .01, repeat: 11, yoyo: true, repeatDelay: .24 }, 3.05);
+  tl.from(".result", { y: 70, autoAlpha: 0, duration: .55, stagger: .14 }, 4.55);
+  tl.to(".result:not(.is-you) .r-btn", { backgroundColor: "#e65a32", borderColor: "#e65a32", color: "#fffefa", duration: .3, stagger: .1 }, 5.2);
+  tl.to(".result.is-you", { opacity: .55, scale: .965, filter: "grayscale(1)", duration: .5 }, 5.3);
+  tl.from(".r-none", { scale: 0, duration: .45, ease: "back.out(2.4)" }, 5.4);
+  tl.from(".s-search .cap > span", { y: 70, autoAlpha: 0, duration: .6, stagger: .14 }, 5.5);
+  exit([".search", ".results", ".s-search .cap"], 6.7);
+  wipe(6.82, "#e65a32");
+  hide(".s-search", 7.1);
+
+  // 3 · O site (7–15s)
+  const screens = $$(".screen");
+  gsap.set(screens.slice(1), { xPercent: 100 });
+  show(".s-site", 7.1);
+  tl.from(".s-site .cap > span", { y: 70, autoAlpha: 0, duration: .6, stagger: .12 }, 7.25);
+  tl.from(".sphere", { scale: .2, autoAlpha: 0, duration: 1.1, ease: "back.out(1.3)" }, 7.3);
+  tl.from(".phone", { y: 380, rotation: 9, autoAlpha: 0, duration: 1.05, ease: "power4.out" }, 7.3);
+  const chips = $$(".chip");
+  tl.fromTo(chips[0], { autoAlpha: 0, x: -40 }, { autoAlpha: 1, x: 0, duration: .4 }, 7.75);
+  tl.to(screens[0], { y: -640, duration: 2.1, ease: "power1.inOut" }, 7.9);
+  tl.from(".badge-1", { scale: .6, autoAlpha: 0, duration: .5, ease: "back.out(2)" }, 8.4);
+  tl.from(".badge-2", { scale: .6, autoAlpha: 0, duration: .5, ease: "back.out(2)" }, 9.1);
+  tl.to(".badge-1", { y: -18, duration: 1.5, repeat: 3, yoyo: true, ease: "sine.inOut" }, 8.9);
+  tl.to(".badge-2", { y: 16, duration: 1.6, repeat: 3, yoyo: true, ease: "sine.inOut" }, 9.6);
+  const swap = (from, to, at, colors) => {
+    tl.to(screens[from], { xPercent: -35, autoAlpha: 0, duration: .55, ease: "power3.inOut" }, at)
+      .to(screens[to], { xPercent: 0, duration: .55, ease: "power3.inOut" }, at)
+      .to(chips[from], { autoAlpha: 0, x: 40, duration: .25 }, at)
+      .fromTo(chips[to], { autoAlpha: 0, x: -40 }, { autoAlpha: 1, x: 0, duration: .4 }, at + .25)
+      .to(".sphere", { "--c1": colors[0], "--c2": colors[1], "--c3": colors[2], "--c4": colors[3], "--c5": colors[4], duration: .8, ease: "power2.inOut" }, at);
+  };
+  swap(0, 1, 10.1, ["#e6efb8", "#adc176", "#73884a", "#4a5c2e", "#29351b"]);
+  tl.to(screens[1], { y: -640, duration: 1.9, ease: "power1.inOut" }, 10.7);
+  swap(1, 2, 12.7, ["#ecdcff", "#bf93ea", "#9360cc", "#66349d", "#3c1c60"]);
+  tl.to(screens[2], { y: -640, duration: 1.7, ease: "power1.inOut" }, 13.2);
+  exit([".s-site .cap", ".chips", ".badge-1", ".badge-2"], 14.7);
+  tl.to([".phone", ".sphere"], { y: 260, autoAlpha: 0, duration: .35, ease: "power2.in" }, 14.7);
+  wipe(14.82, "#20201d");
+  hide(".s-site", 15.1);
+
+  // 4 · WhatsApp (15–20s)
+  tl.set(".bg", { backgroundColor: "#20201d" }, 15.08).set(".dots", { opacity: .1 }, 15.08).set(".glow", { opacity: .55 }, 15.08);
+  show(".s-chat", 15.1);
+  tl.from(".s-chat .cap > span", { y: 70, autoAlpha: 0, duration: .6, stagger: .12 }, 15.25);
+  tl.from(".chat", { y: 140, autoAlpha: 0, duration: .8, ease: "power4.out" }, 15.35);
+  tl.set([".in-1", ".bubble.out", ".in-2"], { autoAlpha: 0 }, 0);
+  tl.from(".typing", { autoAlpha: 0, scale: .8, duration: .25 }, 15.85);
+  tl.to(".typing i", { y: -12, duration: .22, stagger: .1, repeat: 3, yoyo: true, ease: "sine.inOut" }, 15.9);
+  tl.to(".typing", { autoAlpha: 0, duration: .15 }, 16.6);
+  tl.fromTo(".in-1", { autoAlpha: 0, y: 24, scale: .85 }, { autoAlpha: 1, y: 0, scale: 1, duration: .45, ease: "back.out(1.8)" }, 16.65);
+  tl.fromTo(".bubble.out", { autoAlpha: 0, y: 24, scale: .85 }, { autoAlpha: 1, y: 0, scale: 1, duration: .45, ease: "back.out(1.8)" }, 17.5);
+  tl.fromTo(".toast", { autoAlpha: 0, y: 60, scale: .6 }, { autoAlpha: 1, y: 0, scale: 1, duration: .6, ease: "back.out(2.2)" }, 18.05);
+  tl.fromTo(".burst", { autoAlpha: 0, scale: 0, rotation: -90 }, { autoAlpha: 1, scale: 1, rotation: 0, duration: .45, stagger: .08, ease: "back.out(3)" }, 18.2);
+  tl.to(".burst", { autoAlpha: 0, scale: .4, duration: .4, stagger: .06 }, 18.9);
+  tl.fromTo(".in-2", { autoAlpha: 0, y: 24, scale: .85 }, { autoAlpha: 1, y: 0, scale: 1, duration: .45, ease: "back.out(1.8)" }, 18.6);
+  tl.from(".s-chat .note", { autoAlpha: 0, duration: .5 }, 16.2);
+  exit([".s-chat .cap", ".chat", ".toast", ".s-chat .note"], 19.7);
+  tl.to(".bg", { backgroundColor: "#f6f4ee", duration: .3 }, 19.9).to(".dots", { opacity: .5, duration: .3 }, 19.9).to(".glow", { opacity: 1, duration: .3 }, 19.9);
+  hide(".s-chat", 20.05);
+
+  // 5 · Oferta (20–25s)
+  show(".s-offer", 20.05);
+  tl.from(".s-offer .kicker", { y: 30, autoAlpha: 0, duration: .5 }, 20.15);
+  tl.from(".item", { x: -90, autoAlpha: 0, duration: .55, stagger: .28 }, 20.3);
+  tl.from(".item .check", { scale: 0, rotation: -90, duration: .5, stagger: .28, ease: "back.out(2.4)" }, 20.4);
+  tl.from(".price-box", { autoAlpha: 0, y: 50, duration: .6 }, 21.8);
+  const price = { value: 0 };
+  tl.fromTo(price, { value: 0 }, { value: 300, duration: 1.2, ease: "power2.out", onUpdate: () => { $(".price-num").textContent = `R$ ${Math.round(price.value)}`; } }, 21.95);
+  tl.from(".price-num", { scale: .85, transformOrigin: "0% 60%", duration: .9, ease: "back.out(1.6)" }, 21.95);
+  tl.from([".price-box .once", ".price-box .extra"], { y: 30, autoAlpha: 0, duration: .5, stagger: .12 }, 23.1);
+  exit([".s-offer .kicker", ".items", ".price-box"], 24.7);
+  wipe(24.82, "#e65a32");
+  hide(".s-offer", 25.1);
+
+  // 6 · Contato (25–30s), parado nos 2 últimos segundos
+  tl.set(".bg", { backgroundColor: "#20201d" }, 25.08).set(".dots", { opacity: .1 }, 25.08).set(".glow", { opacity: .55 }, 25.08);
+  show(".s-cta", 25.1);
+  tl.from(".s-cta .brand svg", { scale: 0, rotation: -140, duration: .8, ease: "back.out(1.8)" }, 25.25);
+  tl.from(".s-cta .brand strong", { x: -60, autoAlpha: 0, duration: .6 }, 25.4);
+  tl.from(".s-cta .tag", { y: 24, autoAlpha: 0, duration: .5 }, 25.6);
+  tl.from(".cta-pill", { scale: .7, autoAlpha: 0, transformOrigin: "0% 50%", duration: .6, ease: "back.out(2)" }, 25.85);
+  tl.from(".s-cta .phone-number", { y: 50, autoAlpha: 0, duration: .55 }, 26.15);
+  tl.from([".s-cta .link", ".s-cta .place"], { y: 30, autoAlpha: 0, duration: .5, stagger: .12 }, 26.4);
+  tl.to(".cta-pill", { scale: 1.05, transformOrigin: "0% 50%", duration: .3, yoyo: true, repeat: 1, ease: "sine.inOut" }, 27.2);
+  tl.set({}, {}, 30);
+
+  window.tl = tl;
+  window.stageReady = true;
+})();
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@ Base comercial para criação e clonagem de sites de clientes.
 - Node.js 20+
 - Express 5
 - Resend para formulários
-- GSAP 3.15 + ScrollTrigger
+- GSAP 3.15 + ScrollTrigger, Lenis e Three.js (empacotado com esbuild)
 - HTML/CSS/JavaScript
 
 ## Desenvolvimento
@@ -70,6 +70,20 @@ recebem agendamentos para negócios reais. Os antigos endereços
 
 As fontes Manrope e DM Sans estão em `public/assets/fonts/`, com suas
 respectivas licenças OFL. As ilustrações SVG são parte do projeto.
+
+## Topo cinematográfico (3D)
+
+O topo da página inicial é uma história que avança com a rolagem: a seção fica
+travada (GSAP ScrollTrigger) enquanto um celular em 3D (Three.js) gira e mostra
+os exemplos e a conversa no WhatsApp, em 4 etapas.
+
+- `src/hero3d.js`: cena 3D. O `npm run build:netlify` (esbuild) gera
+  `public/vendor/hero3d.js`, carregado só depois que a página aparece. Até lá,
+  e com movimento reduzido, aparece uma imagem fixa do celular.
+- `public/assets/screens/*.webp`: telas mostradas no celular. Refaça com
+  `npm run screens` quando os exemplos de `/projetos` mudarem.
+- Rolagem suave (Lenis), abertura animada (só na primeira visita da sessão) e
+  cursor em anel funcionam só no computador. No celular a rolagem é a nativa.
 
 ## Arquitetura
 
