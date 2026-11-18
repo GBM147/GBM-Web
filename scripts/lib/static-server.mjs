@@ -42,6 +42,8 @@ export async function captureDemo(page, base, demo, file, height) {
   await page.goto(`${base}/projetos.html#${demo}`, { waitUntil: "networkidle" });
   await page.addStyleTag({ content: ".demo-notice { display: none !important; } body { padding-top: 0 !important; }" });
   await page.evaluate(() => document.fonts.ready);
+  // The photo of a demo shown by a tab can still be loading when the network goes quiet.
+  await page.evaluate(() => Promise.all([...document.images].filter((image) => image.offsetParent).map((image) => image.decode().catch(() => {}))));
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: file, fullPage: true, clip: { x: 0, y: 0, width: 390, height } });
 }
