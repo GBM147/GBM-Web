@@ -4,6 +4,7 @@ const registeredEngines = new WeakSet();
 const SCREENS = ["/assets/screens/barbearia.webp", "/assets/screens/restaurante.webp", "/assets/screens/petshop.webp", "/assets/screens/whatsapp.webp"];
 const CHAT = 3;
 const TAU = Math.PI * 2;
+const PHONE_RATIO = 2.06; // height / width of the 3D phone body
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const headerHeight = () => document.querySelector(".site-header")?.offsetHeight || 0;
 
@@ -60,6 +61,16 @@ function splitWords(heading) {
   };
   walk(heading);
   return { words: heading.querySelectorAll(".w > span"), restore: () => { heading.innerHTML = original; } };
+}
+
+// Layout box without the element's own GSAP transform: the opening and the panel tweens move
+// things for a moment, and the phone must aim at where they rest.
+function layoutBox(element) {
+  const moved = element.style.transform;
+  element.style.transform = "none";
+  const box = element.getBoundingClientRect();
+  element.style.transform = moved;
+  return box;
 }
 
 // Smooth scrolling on desktop, driven by the GSAP ticker so ScrollTrigger stays in sync.
@@ -150,43 +161,45 @@ function pinnedStory(gsap, ScrollTrigger, { section, panels, dots = [], windows,
 
 // Phone poses along the page. Each key is relative to an anchor (the empty visual column of
 // a section): dx/dy move it in viewport fractions and k sets its height against the anchor.
+// zoom: 1 brings it up close instead (closeUp in createChoreography).
 const HERO_KEYS = [
-  { p: 0, dy: 0, k: 0.82, rx: 0.1, ry: -0.42, rz: 0.06, screen: 0, chat: 0, scroll: 0 },
-  { p: 0.16, dy: 0.01, k: 0.82, rx: 0.06, ry: -0.3, rz: 0.04, screen: 0, chat: 0, scroll: 0.3 },
-  { p: 0.34, dy: 0.02, k: 0.85, rx: 0.05, ry: -0.3 + TAU, rz: -0.04, screen: 1, chat: 0, scroll: 0 },
-  { p: 0.43, dy: 0.01, k: 0.85, rx: 0.06, ry: 0.26 + TAU, rz: -0.03, screen: 1, chat: 0, scroll: 0.3 },
-  { p: 0.59, dy: 0, k: 0.84, rx: 0.04, ry: 0.26 + TAU * 2, rz: 0.03, screen: 2, chat: 0, scroll: 0 },
-  { p: 0.68, dy: 0, k: 0.84, rx: 0.06, ry: -0.18 + TAU * 2, rz: 0.04, screen: 2, chat: 0, scroll: 0.3 },
-  { p: 0.84, dy: 0.01, k: 0.95, rx: 0, ry: TAU * 2, rz: 0, screen: 2, chat: 1, scroll: 0.3 },
-  { p: 1, dy: 0.02, k: 0.97, rx: -0.02, ry: 0.08 + TAU * 2, rz: 0, screen: 2, chat: 1, scroll: 0.3 }
+  { p: 0, k: 0.82, rx: 0.1, ry: -0.42, rz: 0.06, screen: 0, chat: 0, scroll: 0 },
+  { p: 0.13, k: 0.82, rx: 0.06, ry: -0.3, rz: 0.04, screen: 0, chat: 0, scroll: 0.2 },
+  { p: 0.25, dy: 0.01, k: 0.84, rx: 0.05, ry: 0.3, rz: -0.03, screen: 0, chat: 0, scroll: 0 },
+  // The three examples up close, a full turn between them: the site changes while it shows its back.
+  { p: 0.32, zoom: 1, rx: 0.02, ry: -0.12, rz: 0, screen: 0, chat: 0, scroll: 0 },
+  { p: 0.44, zoom: 1, rx: 0.03, ry: 0.1, rz: 0.01, screen: 0, chat: 0, scroll: 0.45 },
+  { p: 0.51, zoom: 1, rx: 0.02, ry: TAU - 0.12, rz: 0, screen: 1, chat: 0, scroll: 0 },
+  { p: 0.62, zoom: 1, rx: 0.03, ry: TAU + 0.1, rz: 0.01, screen: 1, chat: 0, scroll: 0.45 },
+  { p: 0.69, zoom: 1, rx: 0.02, ry: TAU * 2 - 0.12, rz: 0, screen: 2, chat: 0, scroll: 0 },
+  { p: 0.79, zoom: 1, rx: 0.03, ry: TAU * 2 + 0.1, rz: 0.01, screen: 2, chat: 0, scroll: 0.45 },
+  // Back to its column for the WhatsApp step, turning once more as the chat comes in.
+  { p: 0.88, k: 0.95, rx: 0, ry: TAU * 3, rz: 0, screen: 2, chat: 1, scroll: 0.45 },
+  { p: 1, dy: 0.02, k: 0.97, rx: -0.02, ry: TAU * 3 + 0.08, rz: 0, screen: 2, chat: 1, scroll: 0.45 }
 ];
 const PLANS_KEYS = [
-  { p: 0, k: 0.8, rx: 0.08, ry: TAU * 3 - 0.35, rz: -0.04, screen: 0, chat: 0, scroll: 0 },
-  { p: 0.22, k: 0.82, rx: 0.05, ry: TAU * 3 + 0.3, rz: -0.03, screen: 0, chat: 0, scroll: 0.2 },
-  { p: 0.43, k: 0.82, rx: 0.06, ry: TAU * 3 + 0.1, rz: 0.02, screen: 0, chat: 0, scroll: 0.45 },
-  { p: 0.53, k: 0.82, rx: 0.05, ry: TAU * 4 + 0.1, rz: 0.02, screen: 1, chat: 0, scroll: 0 },
-  { p: 0.68, k: 0.82, rx: 0.06, ry: TAU * 4 - 0.2, rz: -0.02, screen: 1, chat: 0, scroll: 0.4 },
-  { p: 0.78, k: 0.82, rx: 0.05, ry: TAU * 5 - 0.2, rz: 0.02, screen: 2, chat: 0, scroll: 0 },
-  { p: 1, k: 0.84, rx: 0.04, ry: TAU * 5 + 0.25, rz: 0.03, screen: 2, chat: 0, scroll: 0.45 }
+  { p: 0, k: 0.8, rx: 0.08, ry: TAU * 4 - 0.35, rz: -0.04, screen: 0, chat: 0, scroll: 0 },
+  { p: 0.22, k: 0.82, rx: 0.05, ry: TAU * 4 + 0.3, rz: -0.03, screen: 0, chat: 0, scroll: 0.2 },
+  { p: 0.43, k: 0.82, rx: 0.06, ry: TAU * 4 + 0.1, rz: 0.02, screen: 0, chat: 0, scroll: 0.45 },
+  { p: 0.53, k: 0.82, rx: 0.05, ry: TAU * 5 + 0.1, rz: 0.02, screen: 1, chat: 0, scroll: 0 },
+  { p: 0.68, k: 0.82, rx: 0.06, ry: TAU * 5 - 0.2, rz: -0.02, screen: 1, chat: 0, scroll: 0.4 },
+  { p: 0.78, k: 0.82, rx: 0.05, ry: TAU * 6 - 0.2, rz: 0.02, screen: 2, chat: 0, scroll: 0 },
+  { p: 1, k: 0.84, rx: 0.04, ry: TAU * 6 + 0.25, rz: 0.03, screen: 2, chat: 0, scroll: 0.45 }
 ];
 const CONTACT_KEYS = [
-  { p: 0, k: 0.85, rx: 0.06, ry: TAU * 6 - 0.3, rz: 0.03, screen: 2, chat: 1, scroll: 0 },
-  { p: 0.6, k: 0.92, rx: 0.02, ry: TAU * 6 + 0.1, rz: 0, screen: 2, chat: 1, scroll: 0 },
-  { p: 1, k: 0.95, rx: 0, ry: TAU * 6 + 0.25, rz: -0.02, screen: 2, chat: 1, scroll: 0 }
+  { p: 0, k: 0.85, rx: 0.06, ry: TAU * 7 - 0.3, rz: 0.03, screen: 2, chat: 1, scroll: 0 },
+  { p: 0.6, k: 0.92, rx: 0.02, ry: TAU * 7 + 0.1, rz: 0, screen: 2, chat: 1, scroll: 0 },
+  { p: 1, k: 0.95, rx: 0, ry: TAU * 7 + 0.25, rz: -0.02, screen: 2, chat: 1, scroll: 0 }
 ];
 
 // Turns the scroll position into the phone pose: chapters for each pinned scene and the
 // passages between them, with positions measured from the layout.
-function createChoreography({ hero, plans, contact, isDesktop }) {
+function createChoreography({ hero, plans, contact, form, isDesktop }) {
   let chapters = [];
   const anchorOf = (element) => {
     const stage = element?.closest(".story-stage");
     if (!element || !stage) return null;
-    // Measure the resting layout: the opening tween moves and shrinks the visual for a moment.
-    const moved = element.style.transform;
-    element.style.transform = "none";
-    const box = element.getBoundingClientRect();
-    element.style.transform = moved;
+    const box = layoutBox(element);
     const frame = stage.getBoundingClientRect();
     if (!box.width || !box.height) return null;
     const top = headerHeight() + (box.top - frame.top);
@@ -196,16 +209,43 @@ function createChoreography({ hero, plans, contact, isDesktop }) {
       h: box.height / window.innerHeight
     };
   };
-  const resolve = (key, anchor) => ({
-    p: key.p, x: anchor.x + (key.dx || 0), y: anchor.y + (key.dy || 0), h: anchor.h * key.k,
-    rx: key.rx, ry: key.ry, rz: key.rz, screen: key.screen, chat: key.chat, scroll: key.scroll
-  });
+  // Where the phone goes for the close-up of the examples. Large screens: big, centred under the
+  // header and clear of the caption on the left. Phones: above the caption at the bottom.
+  const closeUp = () => {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const top = headerHeight();
+    const caption = hero.section.querySelector(".project-panel");
+    if (isDesktop) {
+      const h = (0.82 * (vh - top)) / vh;
+      const right = caption ? layoutBox(caption).right : vw * 0.4;
+      const center = Math.max(vw / 2, right + 56 + (h * vh) / PHONE_RATIO / 2);
+      return { x: center / vw - 0.5, y: 0.5 - (top + (vh - top) / 2) / vh, h };
+    }
+    // The stage can reach below the screen; --below keeps the caption above the bottom edge.
+    const stage = hero.section.querySelector(".story-stage");
+    const frame = stage.getBoundingClientRect();
+    stage.style.setProperty("--below", `${Math.max(0, Math.round(frame.height - (vh - top)))}px`);
+    const captionTop = caption ? top + layoutBox(caption).top - frame.top : vh * 0.78;
+    const space = Math.max(vh * 0.3, captionTop - top - 30);
+    return { x: 0, y: 0.5 - (top + 12 + space / 2) / vh, h: Math.min(0.64, space / vh) };
+  };
+  const resolve = (key, anchor, near = null) => {
+    const base = { x: anchor.x + (key.dx || 0), y: anchor.y + (key.dy || 0), h: anchor.h * (key.k || 1) };
+    const zoom = near ? key.zoom || 0 : 0;
+    const blend = (name) => base[name] + ((near ? near[name] : base[name]) - base[name]) * zoom;
+    return {
+      p: key.p, x: blend("x"), y: blend("y"), h: blend("h"),
+      rx: key.rx, ry: key.ry, rz: key.rz, screen: key.screen, chat: key.chat, scroll: key.scroll
+    };
+  };
   const away = (pose, extraTurn) => ({ ...pose, p: 1, y: pose.y + 1, h: pose.h * 0.6, ry: pose.ry + extraTurn, hidden: true });
   const rebuild = () => {
     const vh = window.innerHeight;
     const heroAnchor = anchorOf(hero.section.querySelector(".story-visual"));
     if (!heroAnchor) { chapters = []; return; }
-    const heroPoses = HERO_KEYS.map((key) => resolve(key, heroAnchor));
+    const near = closeUp();
+    const heroPoses = HERO_KEYS.map((key) => resolve(key, heroAnchor, near));
     const heroEnd = { ...heroPoses[heroPoses.length - 1] };
     const list = [{ start: hero.trigger.start, end: hero.trigger.end, keys: heroPoses, hero: true }];
     const plansAnchor = isDesktop && plans ? anchorOf(plans.section.querySelector(".story-visual")) : null;
@@ -220,9 +260,32 @@ function createChoreography({ hero, plans, contact, isDesktop }) {
         { start: plans.trigger.start, end: plans.trigger.end, keys: plansPoses },
         // The phone waits on the left while the last plan scrolls away, then crosses to the contact side.
         { start: plans.trigger.end, end: Math.max(plans.trigger.end + 1, contact.trigger.start), keys: [{ ...plansEnd, p: 0 }, { ...plansEnd, p: 0.55, ry: plansEnd.ry + Math.PI, y: plansEnd.y + 0.04, chat: 1 }, { ...contactPoses[0], p: 1 }] },
-        { start: contact.trigger.start, end: contact.trigger.end, keys: contactPoses },
-        { start: contact.trigger.end, end: contact.trigger.end + vh * 0.8, keys: [{ ...contactEnd, p: 0 }, away(contactEnd, 0.8)] }
+        { start: contact.trigger.start, end: contact.trigger.end, keys: contactPoses }
       );
+      // Then it stands beside the form while the form goes by, and leaves.
+      const beside = form?.visual ? layoutBox(form.visual) : null;
+      if (beside?.width) {
+        const top = headerHeight();
+        const room = vh - top;
+        const box = layoutBox(form.element);
+        const formTop = box.top + window.scrollY;
+        const pose = {
+          x: (beside.left + beside.width / 2) / window.innerWidth - 0.5,
+          y: 0.5 - (top + room / 2) / vh,
+          h: (0.62 * room) / vh,
+          rx: 0.04, ry: contactEnd.ry + TAU - 0.35, rz: 0.02, screen: 2, chat: 1, scroll: 0
+        };
+        const settled = { ...pose, ry: pose.ry + 0.2 };
+        const arrive = Math.max(contact.trigger.end + vh * 0.2, formTop - top - 40 - Math.max(0, (room - box.height) / 2));
+        const leave = arrive + Math.max(vh * 0.3, box.height - room + 80);
+        list.push(
+          { start: contact.trigger.end, end: arrive, keys: [{ ...contactEnd, p: 0 }, { ...pose, p: 1 }] },
+          { start: arrive, end: leave, keys: [{ ...pose, p: 0 }, { ...settled, p: 1 }] },
+          { start: leave, end: leave + vh * 0.8, keys: [{ ...settled, p: 0 }, away(settled, 0.8)] }
+        );
+      } else {
+        list.push({ start: contact.trigger.end, end: contact.trigger.end + vh * 0.8, keys: [{ ...contactEnd, p: 0 }, away(contactEnd, 0.8)] });
+      }
     } else {
       // Narrow screens: after the hero the phone leaves, giving the plans and the form the whole screen.
       list.push({ start: hero.trigger.end, end: hero.trigger.end + vh * 0.6, keys: [{ ...heroEnd, p: 0 }, away(heroEnd, 0.6)] });
@@ -308,15 +371,12 @@ export function initAnimations({ skipIntro = false } = {}) {
         restorers.push(initCursor(gsap, signal));
       }
 
-      // 1. Hero: four steps (example sites, then the WhatsApp chat).
+      // 1. Hero: opening, phone-first, the three examples up close (one per step), then the WhatsApp chat.
       const heroSection = document.querySelector(".hero");
       const pricing = document.querySelector(".pricing-section");
       const contactSection = document.querySelector(".contact-section");
       const poster = heroSection?.querySelector(".poster-phone img");
-      const swatches = [...(heroSection?.querySelectorAll("[data-screen]") || [])];
       let scene = null;
-      let override = null;
-      const pressSwatch = (index) => swatches.forEach((button) => button.setAttribute("aria-pressed", String(Number(button.dataset.screen) === index)));
       let hero = null;
       if (heroSection?.querySelector(".story-stage")) {
         const word = heroSection.querySelector(".story-word");
@@ -325,26 +385,16 @@ export function initAnimations({ skipIntro = false } = {}) {
           section: heroSection,
           panels: [...heroSection.querySelectorAll(".story-panel")],
           dots: [...heroSection.querySelectorAll(".story-dots li")],
-          windows: [[0, 0.2], [0.27, 0.46], [0.52, 0.71], [0.77, 1]],
-          length: isDesktop ? 2.6 : 2.2,
+          windows: [[0, 0.12], [0.16, 0.27], [0.32, 0.44], [0.51, 0.62], [0.69, 0.79], [0.86, 1]],
+          length: isDesktop ? 4.4 : 4,
           build: (timeline) => timeline
-            .fromTo(word, { scale: 1, opacity: 0.95 }, { scale: 1.35, opacity: 0.2, ease: "none", duration: 1 }, 0)
+            .fromTo(word, { scale: 1 }, { scale: 1.35, ease: "none", duration: 1 }, 0)
+            .fromTo(word, { opacity: 0.95 }, { opacity: 0.12, ease: "none", duration: 0.3 }, 0)
             .fromTo(glow, { scale: 0.85, opacity: 0.7 }, { scale: 1.3, opacity: 1, ease: "none", duration: 1 }, 0),
-          onStep: (step) => {
-            // Leaving the styles step gives the screen back to the story.
-            override = null;
-            pressSwatch(2);
-            if (!scene && poster) poster.src = SCREENS[step];
-          }
+          // Without the 3D phone the still image follows the steps.
+          onStep: (step) => { if (!scene && poster) poster.src = SCREENS[[0, 0, 0, 1, 2, CHAT][step]]; }
         });
         restorers.push(hero.cleanup, () => { if (poster) poster.src = SCREENS[0]; });
-        swatches.forEach((button) => {
-          button.addEventListener("click", () => {
-            override = Number(button.dataset.screen);
-            pressSwatch(override);
-            if (!scene && poster) poster.src = SCREENS[override];
-          }, { signal });
-        });
       }
 
       // 2. Plans: an opening and one plan per step; the price counts up as it arrives.
@@ -380,42 +430,50 @@ export function initAnimations({ skipIntro = false } = {}) {
         });
       }
 
-      // 3. Contact: a short pinned opening; the title lights up word by word.
+      // 3. Contact: the title rises word by word while the section comes up, then the scene pins
+      // and shows how it works; the form follows, each part rising as it comes into view.
       let contact = null;
+      const contactStage = contactSection?.querySelector(".story-stage");
       const contactTitle = contactSection?.querySelector(".contact-intro h2");
-      if (contactSection?.querySelector(".story-stage") && contactTitle) {
+      if (contactStage && contactTitle) {
         const split = splitWords(contactTitle);
         restorers.push(split.restore);
-        contactSection.classList.add("is-story");
-        const timeline = gsap.timeline({ paused: true });
-        timeline
-          .fromTo(split.words, { opacity: 0.18, yPercent: 40 }, { opacity: 1, yPercent: 0, stagger: 0.08, duration: 0.3, ease: "power2.out" }, 0)
-          .fromTo(contactSection.querySelector(".story-word"), { scale: 0.85, opacity: 0.25 }, { scale: 1.15, opacity: 0.9, ease: "none", duration: 1 }, 0)
-          .set({}, {}, 1);
-        contact = {
+        const how = contactSection.querySelector(".contact-how");
+        contact = pinnedStory(gsap, ScrollTrigger, {
           section: contactSection,
-          trigger: ScrollTrigger.create({
-            trigger: contactSection.querySelector(".story-stage"),
-            start: () => `top top+=${headerHeight()}`,
-            end: () => `+=${Math.round(window.innerHeight * 1.1)}`,
-            pin: true,
-            scrub: 0.6,
-            animation: timeline,
-            anticipatePin: 1,
-            invalidateOnRefresh: true
-          })
-        };
-        restorers.push(() => contactSection.classList.remove("is-story"));
+          panels: [...contactStage.querySelectorAll(".story-panel")],
+          dots: [...contactStage.querySelectorAll(".story-dots li")],
+          windows: [[0, 0.42], [0.5, 1]],
+          length: isDesktop ? 2.2 : 1.9,
+          build: (timeline) => {
+            timeline.fromTo(contactSection.querySelector(".story-word"), { scale: 0.85, opacity: 0.25 }, { scale: 1.15, opacity: 0.9, ease: "none", duration: 1 }, 0);
+            if (!how) return;
+            timeline.from(how.querySelectorAll(".contact-steps li"), { x: 30, opacity: 0, stagger: 0.04, duration: 0.06, ease: "power2.out" }, 0.56);
+            timeline.from(how.querySelectorAll(":scope > .button, :scope > .contact-details"), { y: 24, opacity: 0, stagger: 0.04, duration: 0.06, ease: "power2.out" }, 0.74);
+          }
+        });
+        restorers.push(contact.cleanup);
+        gsap.timeline({ scrollTrigger: { trigger: contactStage, start: "top 85%", end: () => `top top+=${headerHeight()}`, scrub: 0.6 } })
+          .from(contactSection.querySelector(".contact-intro .eyebrow"), { y: 30, opacity: 0, duration: 0.3, ease: "power2.out" }, 0)
+          .from(split.words, { yPercent: 110, opacity: 0, stagger: 0.08, duration: 0.45, ease: "power3.out" }, 0.1)
+          .from(contactTitle.querySelector(":scope > svg"), { scale: 0, rotation: -90, opacity: 0, duration: 0.3, ease: "back.out(2)" }, 0.8);
       }
+      // Opacity only, so keyboard users can still reach every field before it is in view.
+      const contactForm = contactSection?.querySelector(".contact-form");
+      contactForm?.querySelectorAll(":scope > .form-heading, :scope > label, :scope > .form-row, :scope > .form-submit, :scope > .form-note").forEach((part) => {
+        gsap.from(part, { y: 46, opacity: 0, ease: "power2.out", scrollTrigger: { trigger: part, start: "top 97%", end: "top 74%", scrub: 0.6 } });
+      });
       if (hero) hero.section = heroSection;
       if (plans) plans.section = pricing;
+      if (contact) contact.section = contactSection;
 
       // 4. The 3D phone: one scene behind the whole page, loaded after the page is ready.
       const canvas = document.querySelector(".scene-canvas");
       const glow = document.querySelector(".scene-glow");
       const intro3d = { lift: introduced ? 0 : 1 };
       if (hero && canvas) {
-        const choreography = createChoreography({ hero, plans, contact, isDesktop });
+        const form = contactForm ? { element: contactForm, visual: contactSection.querySelector(".form-visual") } : null;
+        const choreography = createChoreography({ hero, plans, contact, form, isDesktop });
         ScrollTrigger.addEventListener("refresh", choreography.rebuild);
         restorers.push(() => ScrollTrigger.removeEventListener("refresh", choreography.rebuild));
         choreography.rebuild();
@@ -431,10 +489,8 @@ export function initAnimations({ skipIntro = false } = {}) {
           const pose = choreography.poseAt(window.scrollY);
           if (!pose) return;
           const lift = intro3d.lift;
-          let screen = pose.screen;
-          if (override !== null && pose.hero !== null && pose.hero >= 0.5 && pose.hero < 0.75) screen = override;
           scene.setTarget({ x: pose.x, y: pose.y - lift * 0.45, h: pose.h * (1 - lift * 0.2), rx: pose.rx, ry: pose.ry - lift * 0.8, rz: pose.rz });
-          scene.setScreen(screen, CHAT, pose.chat, pose.scroll);
+          scene.setScreen(pose.screen, CHAT, pose.chat, pose.scroll);
           if (first) { first = false; scene.jump(); }
           const shown = scene.current();
           const height = shown.h * window.innerHeight;
