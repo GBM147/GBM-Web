@@ -17,7 +17,7 @@ fs.mkdirSync(out, { recursive: true });
 const server = await startStaticServer();
 const browser = await chromium.launch();
 try {
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1.5, reducedMotion: "reduce" });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, reducedMotion: "reduce" });
   const page = await context.newPage();
   // Each demo is a tall print: the 3D screen scrolls through it.
   for (const demo of ["barbearia", "restaurante", "petshop"]) {

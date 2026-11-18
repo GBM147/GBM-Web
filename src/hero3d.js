@@ -94,7 +94,9 @@ export function createPhoneScene(canvas, { screens, modelUrl = "/assets/3d/phone
   const scene = new Scene();
   const pmrem = new PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(studio(), 0.02).texture;
-  const camera = new PerspectiveCamera(FOV, 1, 0.1, 50);
+  // Near plane close to the phone: phones with a 16-bit depth buffer otherwise draw stripes where
+  // the island, the screen layers and the glass sit a hair apart.
+  const camera = new PerspectiveCamera(FOV, 1, 3, 14);
   camera.position.set(0, 0, DISTANCE);
 
   scene.add(new AmbientLight(0xffffff, 0.25));
@@ -119,7 +121,7 @@ export function createPhoneScene(canvas, { screens, modelUrl = "/assets/3d/phone
     Buttons: metal,
     LensRing: new MeshPhysicalMaterial({ color: new Color("#3b3a36"), metalness: 1, roughness: 0.22 }),
     Glass: new MeshPhysicalMaterial({ color: new Color("#050505"), roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.02 }),
-    Island: new MeshBasicMaterial({ color: 0x020202 }),
+    Island: new MeshBasicMaterial({ color: 0x020202, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }),
     Back: new MeshPhysicalMaterial({ map: backTexture(), metalness: 0.15, roughness: 0.5, clearcoat: 0.8, clearcoatRoughness: 0.35 }),
     Plateau: new MeshPhysicalMaterial({ color: new Color("#22211e"), metalness: 0.3, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.05 }),
     LensGlass: new MeshPhysicalMaterial({ color: new Color("#090c13"), roughness: 0.02, clearcoat: 1, iridescence: 0.7, iridescenceIOR: 1.6 }),
@@ -245,7 +247,7 @@ export function createPhoneScene(canvas, { screens, modelUrl = "/assets/3d/phone
     if (!width || !height) return;
     state.width = width;
     state.height = height;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, width < 900 ? 1.5 : 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, width < 900 ? 2 : 1.75));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();

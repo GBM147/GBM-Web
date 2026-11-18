@@ -67,29 +67,52 @@ def plate(name, width, height, radius, z, flip=False, uv=True):
     return new_object(name, mesh)
 
 
-def body():
-    """Frame: rounded slab with softened front and back edges."""
+def body(segments=24, rim=0.022, lip=0.03, arc=8):
+    """Frame: a rounded side profile swept around the rounded-rectangle outline.
+
+    One quad grid with smooth normals: a beveled n-gon leaves a small triangle at every outline
+    point, and on polished metal each of them catches the light as a dot.
+    """
+    ring = []  # (point, outward normal) around the outline, counter-clockwise
+    corners = [(WIDTH / 2 - CORNER, HEIGHT / 2 - CORNER, 0), (-WIDTH / 2 + CORNER, HEIGHT / 2 - CORNER, 90),
+               (-WIDTH / 2 + CORNER, -HEIGHT / 2 + CORNER, 180), (WIDTH / 2 - CORNER, -HEIGHT / 2 + CORNER, 270)]
+    for cx, cy, start in corners:
+        for step in range(segments + 1):
+            angle = math.radians(start + 90 * step / segments)
+            normal = (math.cos(angle), math.sin(angle))
+            ring.append(((cx + CORNER * normal[0], cy + CORNER * normal[1]), normal))
+    # Side profile as (outward offset, height): under the glass, round over the edge, down the side and back.
+    half = DEPTH / 2
+    profile = [(-lip, half)]
+    for step in range(arc + 1):
+        angle = math.radians(90 - 90 * step / arc)
+        profile.append((-rim + rim * math.cos(angle), half - rim + rim * math.sin(angle)))
+    for step in range(arc + 1):
+        angle = math.radians(-90 * step / arc)
+        profile.append((-rim + rim * math.cos(angle), -half + rim + rim * math.sin(angle)))
+    profile.append((-lip, -half))
     bm = bmesh.new()
-    face = rounded_rect(bm, WIDTH, HEIGHT, CORNER, segments=16, z=-DEPTH / 2)
-    face.normal_flip()
-    extruded = bmesh.ops.extrude_face_region(bm, geom=[face])
-    top = [element for element in extruded["geom"] if isinstance(element, bmesh.types.BMVert)]
-    bmesh.ops.translate(bm, vec=Vector((0, 0, DEPTH)), verts=top)
-    bm.normal_update()
-    # Soften the rim where the frame meets front and back glass.
-    rim = [edge for edge in bm.edges if abs(abs(edge.verts[0].co.z) - DEPTH / 2) < 1e-6 and abs(abs(edge.verts[1].co.z) - DEPTH / 2) < 1e-6 and len(edge.link_faces) == 2]
-    rim = [edge for edge in rim if any(abs(face.normal.z) < 0.5 for face in edge.link_faces)]
-    bmesh.ops.bevel(bm, geom=rim, offset=0.022, segments=5, profile=0.5, affect="EDGES")
+    grid = [[bm.verts.new((x + nx * offset, y + ny * offset, z)) for offset, z in profile] for (x, y), (nx, ny) in ring]
+    count = len(ring)
+    for i in range(count):
+        a, b = grid[i], grid[(i + 1) % count]
+        for j in range(len(profile) - 1):
+            bm.faces.new((a[j], b[j], b[j + 1], a[j + 1]))
+    bm.faces.new([row[0] for row in grid])
+    bm.faces.new([row[-1] for row in reversed(grid)])
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    # u runs along the outline (the brushed direction of the metal), v across the profile.
     uv = bm.loops.layers.uv.verify()
     for face in bm.faces:
         for loop in face.loops:
             co = loop.vert.co
-            loop[uv].uv = ((math.atan2(co.y, co.x) / (2 * math.pi)) % 1, (co.z + DEPTH / 2) / DEPTH)
+            loop[uv].uv = ((math.atan2(co.y, co.x) / (2 * math.pi)) % 1, (co.z + half) / DEPTH)
     mesh = bpy.data.meshes.new("Frame")
     bm.to_mesh(mesh)
     bm.free()
     for polygon in mesh.polygons:
-        polygon.use_smooth = True
+        polygon.use_smooth = len(polygon.vertices) == 4
     return new_object("Frame", mesh)
 
 
