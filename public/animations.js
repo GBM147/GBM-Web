@@ -256,7 +256,19 @@ function createChoreography({ hero, plans, contact, form, isDesktop }) {
       const plansEnd = plansPoses[plansPoses.length - 1];
       const contactEnd = contactPoses[contactPoses.length - 1];
       list.push(
-        { start: hero.trigger.end, end: Math.max(hero.trigger.end + 1, plans.trigger.start), keys: [{ ...heroEnd, p: 0 }, { ...plansPoses[0], p: 1 }] },
+        // With a section between hero and plans (the phone opened in layers), this phone flies up
+        // and away, then rises from below with the plans.
+        plans.trigger.start - hero.trigger.end > vh * 1.5
+          ? (() => {
+            const gap = plans.trigger.start - hero.trigger.end;
+            const out = (vh * 0.7) / gap;
+            const back = 1 - (vh * 0.9) / gap;
+            const parked = { ...away(heroEnd, 0.6), p: out };
+            const below = { ...plansPoses[0], y: plansPoses[0].y - 1.1, ry: plansPoses[0].ry - 0.6 };
+            // Parked above the screen (and not drawn) while the section goes by, then a jump below it.
+            return { start: hero.trigger.end, end: plans.trigger.start, keys: [{ ...heroEnd, p: 0 }, parked, { ...parked, p: back - 0.002 }, { ...below, p: back - 0.001 }, { ...plansPoses[0], p: 1 }] };
+          })()
+          : { start: hero.trigger.end, end: Math.max(hero.trigger.end + 1, plans.trigger.start), keys: [{ ...heroEnd, p: 0 }, { ...plansPoses[0], p: 1 }] },
         { start: plans.trigger.start, end: plans.trigger.end, keys: plansPoses },
         // The phone waits on the left while the last plan scrolls away, then crosses to the contact side.
         { start: plans.trigger.end, end: Math.max(plans.trigger.end + 1, contact.trigger.start), keys: [{ ...plansEnd, p: 0 }, { ...plansEnd, p: 0.55, ry: plansEnd.ry + Math.PI, y: plansEnd.y + 0.04, chat: 1 }, { ...contactPoses[0], p: 1 }] },
@@ -313,7 +325,7 @@ function createChoreography({ hero, plans, contact, form, isDesktop }) {
       chat: mix("chat"), scroll: mix("scroll"),
       // The site on the screen changes while the phone shows its back.
       screen: t < 0.5 ? a.screen : b.screen,
-      hidden: Boolean(b.hidden && t >= 1),
+      hidden: Boolean((a.hidden && b.hidden) || (b.hidden && t >= 1)),
       hero: chapter.hero ? progress : null
     };
   };
