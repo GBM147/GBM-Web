@@ -186,21 +186,27 @@ function captionSwap(gsap, stage, evaporator) {
 // A scene coming up from below: its first step, caption and notes come out of the blur, done
 // by the time it pins.
 function stageArrival(gsap, stage, panel) {
-  const targets = [...arrivalsOf(panel), ...stage.querySelectorAll(".scene-caption, .pricing-note")];
+  const targets = [...arrivalsOf(panel), ...stage.querySelectorAll(".scene-caption, .pricing-note, .contact-mark")];
   return gsap.fromTo(targets, { ...BLUR_IN }, {
     ...SHARP, ease: "none", stagger: 0.08,
     scrollTrigger: { trigger: stage, start: "top 85%", end: () => `top top+=${headerHeight()}`, scrub: 0.6 }
   });
 }
 
-// A block leaving through the top of the screen turns to dust on the way, as the steps do;
-// scrolling back brings it back. pinnedContainer: the pinned stage it sits in, if any.
-function leaveTop(ScrollTrigger, trigger, onProgress, pinnedContainer) {
+// Once a scene unpins, a block of it leaving through the top turns to dust on the way, as the
+// steps do; scrolling back brings it back. Measured from the end of the pin: when it ends, the
+// stage sits right under the header, so a block `offset` px down the stage starts to go when it
+// reaches 20% of the screen (or at once, if it is already above) and is gone when its bottom
+// passes the header.
+function leaveAfterPin(ScrollTrigger, story, block, onProgress) {
+  const place = () => {
+    const box = block.getBoundingClientRect();
+    return { offset: box.top - story.stage.getBoundingClientRect().top, height: box.height };
+  };
+  const startAt = () => story.trigger.end + Math.max(0, place().offset - window.innerHeight * 0.2);
   return ScrollTrigger.create({
-    trigger,
-    pinnedContainer,
-    start: () => `top top+=${headerHeight() + Math.round(window.innerHeight * 0.2)}`,
-    end: () => `bottom top+=${headerHeight()}`,
+    start: startAt,
+    end: () => { const { offset, height } = place(); return Math.max(startAt() + 1, story.trigger.end + offset + height); },
     invalidateOnRefresh: true,
     onUpdate: (self) => onProgress(self.progress)
   });
@@ -497,7 +503,7 @@ export function initAnimations({ skipIntro = false } = {}) {
         // After the scene, the last plan leaves through the top: its texts evaporate and the
         // swarm scatters the price away.
         const lastAmount = amounts[amounts.length - 1];
-        if (swarm && lastAmount) leaveTop(ScrollTrigger, lastAmount, (progress) => swarm.set(amounts.length + progress), plans.stage);
+        if (swarm && lastAmount) leaveAfterPin(ScrollTrigger, plans, lastAmount, (progress) => swarm.set(amounts.length + progress));
         restorers.push(plans.cleanup, () => {
           captions.reset();
           swarm?.destroy();
@@ -518,8 +524,8 @@ export function initAnimations({ skipIntro = false } = {}) {
           length: isDesktop ? 2.2 : 1.9,
           small: !isDesktop,
           build: (timeline) => {
-            const photos = contactStage.querySelector(".scene-photos");
-            if (photos) timeline.fromTo(photos.querySelectorAll("img"), { scale: 1.08 }, { scale: 1, ease: "none", duration: 1 }, 0);
+            const mark = contactStage.querySelector(".contact-mark");
+            if (mark) timeline.fromTo(mark, { scale: 1.06 }, { scale: 1, ease: "none", duration: 1 }, 0);
           }
         });
         restorers.push(contact.cleanup);
@@ -534,20 +540,14 @@ export function initAnimations({ skipIntro = false } = {}) {
         const blocks = [...(last ? blocksOf(last) : []), ...story.stage.querySelectorAll(".scene-caption, .pricing-note")];
         blocks.forEach((block) => {
           const group = story.evaporator.group([block]);
-          leaveTop(ScrollTrigger, block, (progress) => group.set(progress), story.stage);
+          leaveAfterPin(ScrollTrigger, story, block, (progress) => group.set(progress));
         });
       }
 
-      // Texts outside the scenes (the form, the band and the footer): out of the blur as they
-      // come in from below, and the form turns to dust as it leaves through the top.
-      const loose = createEvaporator(document.body, { small: !isDesktop, fixed: true });
-      restorers.push(() => loose.destroy());
+      // Texts outside the scenes (the form, the band and the footer) come out of the blur as they
+      // come in from below. They end the page, so they never leave through the top.
       const contactForm = contactSection?.querySelector(".contact-form");
-      contactForm?.querySelectorAll(":scope > .form-heading, :scope > label, :scope > .form-row, :scope > .contact-plan-hint, :scope > .form-submit, :scope > .form-note").forEach((block) => {
-        arrive(gsap, block);
-        const group = loose.group([block]);
-        leaveTop(ScrollTrigger, block, (progress) => group.set(progress));
-      });
+      contactForm?.querySelectorAll(":scope > .form-heading, :scope > label, :scope > .form-row, :scope > .contact-plan-hint, :scope > .form-submit, :scope > .form-note").forEach((block) => arrive(gsap, block));
       document.querySelectorAll(".marquee-band, .footer-top > *, .footer-bottom > *").forEach((block) => arrive(gsap, block));
       if (hero) hero.section = heroSection;
       if (plans) plans.section = pricing;
@@ -555,7 +555,6 @@ export function initAnimations({ skipIntro = false } = {}) {
       // Layout changed (resize, fonts): measure the titles and prices again.
       const refreshEffects = () => {
         [hero, plans, contact].forEach((story) => story?.evaporator.refresh());
-        loose.refresh();
         swarm?.refresh();
       };
       ScrollTrigger.addEventListener("refresh", refreshEffects);

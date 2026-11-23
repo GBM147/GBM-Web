@@ -173,22 +173,21 @@ function sampleBlocks(roots, origin, { limit, hidden = false, textStep = 0 }) {
 }
 
 // ---------- Evaporar ----------
-// host: the element the dust is drawn over (a pinned stage). fixed: one canvas over the
-// viewport, in page coordinates, for blocks that scroll freely.
-export function createEvaporator(host, { small = false, fixed = false } = {}) {
+// host: the element the dust is drawn over (a pinned stage).
+export function createEvaporator(host, { small = false } = {}) {
   const canvas = document.createElement("canvas");
-  canvas.className = fixed ? "fx-canvas is-fixed" : "fx-canvas";
+  canvas.className = "fx-canvas";
   canvas.setAttribute("aria-hidden", "true");
-  (fixed ? document.body : host).append(canvas);
+  host.append(canvas);
   const context = canvas.getContext("2d");
   const limit = small ? 4500 : 9000;
   const grain = small ? 1.4 : 1.8;
   const groups = new Set();
   let ratio = 1;
   let frame = 0;
-  const origin = () => (fixed ? { left: -window.scrollX, top: -window.scrollY } : host.getBoundingClientRect());
+  const origin = () => host.getBoundingClientRect();
   const fit = () => {
-    const box = fixed ? { width: window.innerWidth, height: window.innerHeight } : host.getBoundingClientRect();
+    const box = host.getBoundingClientRect();
     ratio = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.max(1, Math.round(box.width * ratio));
     canvas.height = Math.max(1, Math.round(box.height * ratio));
@@ -199,9 +198,7 @@ export function createEvaporator(host, { small = false, fixed = false } = {}) {
     frame = 0;
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
-    const shiftX = fixed ? -window.scrollX : 0;
-    const shiftY = fixed ? -window.scrollY : 0;
-    context.setTransform(ratio, 0, 0, ratio, shiftX * ratio, shiftY * ratio);
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
     const time = performance.now() / 1000;
     let moving = false;
     for (const group of groups) {
