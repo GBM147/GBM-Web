@@ -306,3 +306,28 @@ if (document.readyState === "complete") startAnimations();
 else window.addEventListener("load", () => { startAnimations(); }, { once: true });
 window.addEventListener("pagehide", () => { stopAnimations(); });
 window.addEventListener("pageshow", (event) => { if (event.persisted) startAnimations(true); });
+
+// Bento: anima ao entrar na tela e reage ao cursor.
+(() => {
+  const cards = document.querySelectorAll(".bento-card");
+  if (!cards.length) return;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); }
+    }), { threshold: 0.35 });
+    cards.forEach((card) => io.observe(card));
+  } else cards.forEach((card) => card.classList.add("is-in"));
+  if (reduce || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+  cards.forEach((card) => {
+    card.addEventListener("pointermove", (event) => {
+      const r = card.getBoundingClientRect();
+      const x = (event.clientX - r.left) / r.width;
+      const y = (event.clientY - r.top) / r.height;
+      card.style.setProperty("--mx", `${x * 100}%`);
+      card.style.setProperty("--my", `${y * 100}%`);
+      card.style.transform = `perspective(900px) rotateX(${(0.5 - y) * 5}deg) rotateY(${(x - 0.5) * 5}deg)`;
+    });
+    card.addEventListener("pointerleave", () => { card.style.transform = ""; });
+  });
+})();

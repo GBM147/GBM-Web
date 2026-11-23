@@ -256,7 +256,10 @@ function createChoreography({ hero, plans, contact, form, isDesktop }) {
       const plansEnd = plansPoses[plansPoses.length - 1];
       const contactEnd = contactPoses[contactPoses.length - 1];
       list.push(
-        { start: hero.trigger.end, end: Math.max(hero.trigger.end + 1, plans.trigger.start), keys: [{ ...heroEnd, p: 0 }, { ...plansPoses[0], p: 1 }] },
+        // With a section between hero and plans, the phone leaves the screen and comes back for the plans.
+        plans.trigger.start - hero.trigger.end > vh * 1.2
+          ? { start: hero.trigger.end, end: plans.trigger.start, keys: [{ ...heroEnd, p: 0 }, { ...away(heroEnd, 0.6), hidden: false, p: 0.18 }, { ...away(plansPoses[0], -0.6), hidden: false, p: 0.82 }, { ...plansPoses[0], p: 1 }] }
+          : { start: hero.trigger.end, end: Math.max(hero.trigger.end + 1, plans.trigger.start), keys: [{ ...heroEnd, p: 0 }, { ...plansPoses[0], p: 1 }] },
         { start: plans.trigger.start, end: plans.trigger.end, keys: plansPoses },
         // The phone waits on the left while the last plan scrolls away, then crosses to the contact side.
         { start: plans.trigger.end, end: Math.max(plans.trigger.end + 1, contact.trigger.start), keys: [{ ...plansEnd, p: 0 }, { ...plansEnd, p: 0.55, ry: plansEnd.ry + Math.PI, y: plansEnd.y + 0.04, chat: 1 }, { ...contactPoses[0], p: 1 }] },
