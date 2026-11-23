@@ -1,4 +1,12 @@
+import { createEvaporator, createSwarm } from "./text-effects.js";
+
 const registeredEngines = new WeakSet();
+// Every text arrives out of the blur and leaves as dust (public/text-effects.js).
+const BLUR_IN = { filter: "blur(16px)", opacity: 0 };
+const SHARP = { filter: "blur(0px)", opacity: 1 };
+// The text blocks of a step are its direct children; lists arrive item by item.
+const blocksOf = (panel) => [...panel.children];
+const arrivalsOf = (panel) => blocksOf(panel).flatMap((block) => (block.matches("ul, ol") ? [...block.children] : [block]));
 
 // Screens shown by the 3D phone: the three example sites and the WhatsApp chat (index 3).
 const SCREENS = ["/assets/screens/barbearia.webp", "/assets/screens/restaurante.webp", "/assets/screens/petshop.webp", "/assets/screens/whatsapp.webp"];
@@ -32,35 +40,6 @@ function splitChars(nodes) {
   };
   nodes.forEach(walk);
   return { chars, restore: () => originals.forEach(([node, html]) => { node.innerHTML = html; }) };
-}
-
-// Wraps each word of a heading in a mask so it can slide up; restore() puts the original markup back.
-function splitWords(heading) {
-  const original = heading.innerHTML;
-  const wrap = (node) => {
-    const outer = document.createElement("span");
-    const inner = document.createElement("span");
-    outer.className = "w";
-    inner.append(node);
-    outer.append(inner);
-    return outer;
-  };
-  const walk = (parent) => {
-    [...parent.childNodes].forEach((child) => {
-      if (child.nodeType === Node.TEXT_NODE) {
-        const fragment = document.createDocumentFragment();
-        child.textContent.split(/(\s+)/).forEach((part) => {
-          if (!part) return;
-          fragment.append(/^\s+$/.test(part) ? document.createTextNode(part) : wrap(document.createTextNode(part)));
-        });
-        child.replaceWith(fragment);
-      } else if (child.nodeName === "EM") {
-        walk(child);
-      }
-    });
-  };
-  walk(heading);
-  return { words: heading.querySelectorAll(".w > span"), restore: () => { heading.innerHTML = original; } };
 }
 
 // Layout box without the element's own GSAP transform: the opening and the panel tweens move
@@ -115,15 +94,25 @@ function initCursor(gsap, signal) {
 
 // A section pinned under the header while scrolling moves through its panels.
 // windows: [enter, leave] progress for each panel (the first one starts visible).
-function pinnedStory(gsap, ScrollTrigger, { section, panels, dots = [], windows, length, build, onStep }) {
+function pinnedStory(gsap, ScrollTrigger, { section, panels, dots = [], windows, length, build, onStep, small }) {
   const stage = section.querySelector(".story-stage");
   section.classList.add("is-story");
   const timeline = gsap.timeline({ paused: true, defaults: { duration: 0.05 } });
-  gsap.set(panels.slice(1), { autoAlpha: 0, y: 40 });
+  const evaporator = createEvaporator(stage, { small });
+  gsap.set(panels.slice(1), { autoAlpha: 0 });
   panels.forEach((panel, index) => {
     const [enter, leave] = windows[index];
-    if (index > 0) timeline.to(panel, { autoAlpha: 1, y: 0, ease: "power2.out" }, enter);
-    if (leave < 1) timeline.to(panel, { autoAlpha: 0, y: -40, ease: "power2.in" }, leave);
+    // Every text of the step comes out of the blur, top to bottom...
+    if (index > 0) {
+      timeline.set(panel, { autoAlpha: 1 }, enter);
+      timeline.fromTo(arrivalsOf(panel), { ...BLUR_IN }, { ...SHARP, duration: 0.06, stagger: 0.006, ease: "power2.out" }, enter);
+    }
+    if (leave >= 1) return;
+    // ...and all of it evaporates when the step leaves, swept left to right, before it hides.
+    const group = evaporator.group(blocksOf(panel));
+    const vapor = { t: 0 };
+    timeline.fromTo(vapor, { t: 0 }, { t: 1, duration: 0.1, ease: "none", onUpdate: () => group.set(vapor.t) }, leave - 0.02);
+    timeline.set(panel, { autoAlpha: 0 }, leave + 0.09);
   });
   build?.(timeline);
   timeline.set({}, {}, 1);
@@ -152,44 +141,115 @@ function pinnedStory(gsap, ScrollTrigger, { section, panels, dots = [], windows,
   return {
     trigger,
     timeline,
+    stage,
+    evaporator,
     cleanup: () => {
+      evaporator.destroy();
       section.classList.remove("is-story");
       panels.forEach((panel) => { panel.inert = false; });
     }
   };
 }
 
+// The caption under the photos: the old one evaporates and the new one comes out of the blur.
+function captionSwap(gsap, stage, evaporator) {
+  const spans = [...stage.querySelectorAll(".scene-caption span")];
+  const state = new Map(spans.map((span) => [span, { group: evaporator.group([span]), tween: null }]));
+  let current = spans[0];
+  return {
+    show(key) {
+      const next = spans.find((span) => span.dataset.photo === key);
+      if (!next || next === current) return;
+      const old = current;
+      current = next;
+      const leaving = state.get(old);
+      const arriving = state.get(next);
+      leaving.tween?.kill();
+      arriving.tween?.kill();
+      arriving.group.set(0);
+      const vapor = { t: 0 };
+      leaving.tween = gsap.to(vapor, {
+        t: 1, duration: 0.9, ease: "none",
+        onUpdate: () => leaving.group.set(vapor.t),
+        onComplete: () => { gsap.set(old, { opacity: 0 }); leaving.group.set(0); }
+      });
+      arriving.tween = gsap.fromTo(next, { ...BLUR_IN }, { ...SHARP, duration: 0.7, delay: 0.3, ease: "power2.out" });
+    },
+    reset() {
+      state.forEach(({ tween }) => tween?.kill());
+      gsap.set(spans, { clearProps: "opacity,filter" });
+      current = spans[0];
+    }
+  };
+}
+
+// A scene coming up from below: its first step, caption and notes come out of the blur, done
+// by the time it pins.
+function stageArrival(gsap, stage, panel) {
+  const targets = [...arrivalsOf(panel), ...stage.querySelectorAll(".scene-caption, .pricing-note")];
+  return gsap.fromTo(targets, { ...BLUR_IN }, {
+    ...SHARP, ease: "none", stagger: 0.08,
+    scrollTrigger: { trigger: stage, start: "top 85%", end: () => `top top+=${headerHeight()}`, scrub: 0.6 }
+  });
+}
+
+// A block leaving through the top of the screen turns to dust on the way, as the steps do;
+// scrolling back brings it back. pinnedContainer: the pinned stage it sits in, if any.
+function leaveTop(ScrollTrigger, trigger, onProgress, pinnedContainer) {
+  return ScrollTrigger.create({
+    trigger,
+    pinnedContainer,
+    start: () => `top top+=${headerHeight() + Math.round(window.innerHeight * 0.2)}`,
+    end: () => `bottom top+=${headerHeight()}`,
+    invalidateOnRefresh: true,
+    onUpdate: (self) => onProgress(self.progress)
+  });
+}
+
+// A block outside the scenes comes out of the blur as it enters from below (and blurs out
+// again when scrolled back down). Opacity only, so the fields stay reachable by keyboard.
+function arrive(gsap, element) {
+  return gsap.fromTo(element, { ...BLUR_IN }, {
+    ...SHARP, duration: 0.8, ease: "power2.out",
+    scrollTrigger: { trigger: element, start: "top 96%", toggleActions: "play none none reverse" }
+  });
+}
+
 // Phone poses along the page. Each key is relative to an anchor (the empty visual column of
 // a section): dx/dy move it in viewport fractions and k sets its height against the anchor.
 // zoom: 1 brings it up close instead (closeUp in createChoreography).
 const HERO_KEYS = [
-  { p: 0, k: 0.82, rx: 0.1, ry: -0.42, rz: 0.06, screen: 0, chat: 0, scroll: 0 },
-  { p: 0.13, k: 0.82, rx: 0.06, ry: -0.3, rz: 0.04, screen: 0, chat: 0, scroll: 0.2 },
-  { p: 0.25, dy: 0.01, k: 0.84, rx: 0.05, ry: 0.3, rz: -0.03, screen: 0, chat: 0, scroll: 0 },
-  // The three examples up close, a full turn between them: the site changes while it shows its back.
-  { p: 0.32, zoom: 1, rx: 0.02, ry: -0.12, rz: 0, screen: 0, chat: 0, scroll: 0 },
-  { p: 0.44, zoom: 1, rx: 0.03, ry: 0.1, rz: 0.01, screen: 0, chat: 0, scroll: 0.45 },
-  { p: 0.51, zoom: 1, rx: 0.02, ry: TAU - 0.12, rz: 0, screen: 1, chat: 0, scroll: 0 },
-  { p: 0.62, zoom: 1, rx: 0.03, ry: TAU + 0.1, rz: 0.01, screen: 1, chat: 0, scroll: 0.45 },
-  { p: 0.69, zoom: 1, rx: 0.02, ry: TAU * 2 - 0.12, rz: 0, screen: 2, chat: 0, scroll: 0 },
-  { p: 0.79, zoom: 1, rx: 0.03, ry: TAU * 2 + 0.1, rz: 0.01, screen: 2, chat: 0, scroll: 0.45 },
-  // Back to its column for the WhatsApp step, turning once more as the chat comes in.
-  { p: 0.88, k: 0.95, rx: 0, ry: TAU * 3, rz: 0, screen: 2, chat: 1, scroll: 0.45 },
-  { p: 1, dy: 0.02, k: 0.97, rx: -0.02, ry: TAU * 3 + 0.08, rz: 0, screen: 2, chat: 1, scroll: 0.45 }
+  { p: 0, k: 0.7, rx: 0.1, ry: -0.42, rz: 0.06, screen: 0, chat: 0, scroll: 0 },
+  { p: 0.13, k: 0.7, rx: 0.06, ry: -0.3, rz: 0.04, screen: 0, chat: 0, scroll: 0.2 },
+  { p: 0.25, dy: 0.01, k: 0.72, rx: 0.05, ry: 0.3, rz: -0.03, screen: 0, chat: 0, scroll: 0 },
+  // The three examples, a full turn between them: the site changes while it shows its back.
+  // Phones bring it up close (zoom); large screens keep it in its column, over the photo.
+  { p: 0.32, zoom: 1, k: 0.76, rx: 0.02, ry: -0.12, rz: 0, screen: 0, chat: 0, scroll: 0 },
+  { p: 0.44, zoom: 1, k: 0.76, rx: 0.03, ry: 0.1, rz: 0.01, screen: 0, chat: 0, scroll: 0.45 },
+  { p: 0.51, zoom: 1, k: 0.76, rx: 0.02, ry: TAU - 0.12, rz: 0, screen: 1, chat: 0, scroll: 0 },
+  { p: 0.62, zoom: 1, k: 0.76, rx: 0.03, ry: TAU + 0.1, rz: 0.01, screen: 1, chat: 0, scroll: 0.45 },
+  { p: 0.69, zoom: 1, k: 0.76, rx: 0.02, ry: TAU * 2 - 0.12, rz: 0, screen: 2, chat: 0, scroll: 0 },
+  { p: 0.79, zoom: 1, k: 0.76, rx: 0.03, ry: TAU * 2 + 0.1, rz: 0.01, screen: 2, chat: 0, scroll: 0.45 },
+  // Back for the WhatsApp step, turning once more as the chat comes in.
+  { p: 0.88, k: 0.78, rx: 0, ry: TAU * 3, rz: 0, screen: 2, chat: 1, scroll: 0.45 },
+  { p: 1, dy: 0.02, k: 0.8, rx: -0.02, ry: TAU * 3 + 0.08, rz: 0, screen: 2, chat: 1, scroll: 0.45 }
 ];
+// Photo behind each step: the example whose site is on the phone (the chat is with the barbershop).
+const HERO_PHOTOS = ["barbearia", "barbearia", "barbearia", "restaurante", "petshop", "barbearia"];
+const PLAN_PHOTOS = ["barbearia", "barbearia", "restaurante", "petshop"];
 const PLANS_KEYS = [
-  { p: 0, k: 0.8, rx: 0.08, ry: TAU * 4 - 0.35, rz: -0.04, screen: 0, chat: 0, scroll: 0 },
-  { p: 0.22, k: 0.82, rx: 0.05, ry: TAU * 4 + 0.3, rz: -0.03, screen: 0, chat: 0, scroll: 0.2 },
-  { p: 0.43, k: 0.82, rx: 0.06, ry: TAU * 4 + 0.1, rz: 0.02, screen: 0, chat: 0, scroll: 0.45 },
-  { p: 0.53, k: 0.82, rx: 0.05, ry: TAU * 5 + 0.1, rz: 0.02, screen: 1, chat: 0, scroll: 0 },
-  { p: 0.68, k: 0.82, rx: 0.06, ry: TAU * 5 - 0.2, rz: -0.02, screen: 1, chat: 0, scroll: 0.4 },
-  { p: 0.78, k: 0.82, rx: 0.05, ry: TAU * 6 - 0.2, rz: 0.02, screen: 2, chat: 0, scroll: 0 },
-  { p: 1, k: 0.84, rx: 0.04, ry: TAU * 6 + 0.25, rz: 0.03, screen: 2, chat: 0, scroll: 0.45 }
+  { p: 0, k: 0.7, rx: 0.08, ry: TAU * 4 - 0.35, rz: -0.04, screen: 0, chat: 0, scroll: 0 },
+  { p: 0.22, k: 0.72, rx: 0.05, ry: TAU * 4 + 0.3, rz: -0.03, screen: 0, chat: 0, scroll: 0.2 },
+  { p: 0.43, k: 0.72, rx: 0.06, ry: TAU * 4 + 0.1, rz: 0.02, screen: 0, chat: 0, scroll: 0.45 },
+  { p: 0.53, k: 0.72, rx: 0.05, ry: TAU * 5 + 0.1, rz: 0.02, screen: 1, chat: 0, scroll: 0 },
+  { p: 0.68, k: 0.72, rx: 0.06, ry: TAU * 5 - 0.2, rz: -0.02, screen: 1, chat: 0, scroll: 0.4 },
+  { p: 0.78, k: 0.72, rx: 0.05, ry: TAU * 6 - 0.2, rz: 0.02, screen: 2, chat: 0, scroll: 0 },
+  { p: 1, k: 0.74, rx: 0.04, ry: TAU * 6 + 0.25, rz: 0.03, screen: 2, chat: 0, scroll: 0.45 }
 ];
 const CONTACT_KEYS = [
-  { p: 0, k: 0.85, rx: 0.06, ry: TAU * 7 - 0.3, rz: 0.03, screen: 2, chat: 1, scroll: 0 },
-  { p: 0.6, k: 0.92, rx: 0.02, ry: TAU * 7 + 0.1, rz: 0, screen: 2, chat: 1, scroll: 0 },
-  { p: 1, k: 0.95, rx: 0, ry: TAU * 7 + 0.25, rz: -0.02, screen: 2, chat: 1, scroll: 0 }
+  { p: 0, k: 0.74, rx: 0.06, ry: TAU * 7 - 0.3, rz: 0.03, screen: 2, chat: 1, scroll: 0 },
+  { p: 0.6, k: 0.78, rx: 0.02, ry: TAU * 7 + 0.1, rz: 0, screen: 2, chat: 1, scroll: 0 },
+  { p: 1, k: 0.8, rx: 0, ry: TAU * 7 + 0.25, rz: -0.02, screen: 2, chat: 1, scroll: 0 }
 ];
 
 // Turns the scroll position into the phone pose: chapters for each pinned scene and the
@@ -244,7 +304,7 @@ function createChoreography({ hero, plans, contact, form, isDesktop }) {
     const vh = window.innerHeight;
     const heroAnchor = anchorOf(hero.section.querySelector(".story-visual"));
     if (!heroAnchor) { chapters = []; return; }
-    const near = closeUp();
+    const near = isDesktop ? null : closeUp();
     const heroPoses = HERO_KEYS.map((key) => resolve(key, heroAnchor, near));
     const heroEnd = { ...heroPoses[heroPoses.length - 1] };
     const list = [{ start: hero.trigger.start, end: hero.trigger.end, keys: heroPoses, hero: true }];
@@ -272,7 +332,7 @@ function createChoreography({ hero, plans, contact, form, isDesktop }) {
         const pose = {
           x: (beside.left + beside.width / 2) / window.innerWidth - 0.5,
           y: 0.5 - (top + room / 2) / vh,
-          h: (0.62 * room) / vh,
+          h: (0.56 * room) / vh,
           rx: 0.04, ry: contactEnd.ry + TAU - 0.35, rz: 0.02, screen: 2, chat: 1, scroll: 0
         };
         const settled = { ...pose, ry: pose.ry + 0.2 };
@@ -379,93 +439,127 @@ export function initAnimations({ skipIntro = false } = {}) {
       let scene = null;
       let hero = null;
       if (heroSection?.querySelector(".story-stage")) {
-        const word = heroSection.querySelector(".story-word");
-        const glow = heroSection.querySelector(".story-glow");
+        const photos = heroSection.querySelector(".scene-photos");
+        let captions = null;
         hero = pinnedStory(gsap, ScrollTrigger, {
           section: heroSection,
           panels: [...heroSection.querySelectorAll(".story-panel")],
           dots: [...heroSection.querySelectorAll(".story-dots li")],
           windows: [[0, 0.12], [0.16, 0.27], [0.32, 0.44], [0.51, 0.62], [0.69, 0.79], [0.86, 1]],
           length: isDesktop ? 4.4 : 4,
-          build: (timeline) => timeline
-            .fromTo(word, { scale: 1 }, { scale: 1.35, ease: "none", duration: 1 }, 0)
-            .fromTo(word, { opacity: 0.95 }, { opacity: 0.12, ease: "none", duration: 0.3 }, 0)
-            .fromTo(glow, { scale: 0.85, opacity: 0.7 }, { scale: 1.3, opacity: 1, ease: "none", duration: 1 }, 0),
-          // Without the 3D phone the still image follows the steps.
-          onStep: (step) => { if (!scene && poster) poster.src = SCREENS[[0, 0, 0, 1, 2, CHAT][step]]; }
+          small: !isDesktop,
+          // A slow push-in on the photos while the scene scrolls.
+          build: (timeline) => { if (photos) timeline.fromTo(photos.querySelectorAll("img"), { scale: 1.08 }, { scale: 1, ease: "none", duration: 1 }, 0); },
+          onStep: (step) => {
+            heroSection.dataset.photo = HERO_PHOTOS[step];
+            captions?.show(HERO_PHOTOS[step]);
+            // Without the 3D phone the still image follows the steps.
+            if (!scene && poster) poster.src = SCREENS[[0, 0, 0, 1, 2, CHAT][step]];
+          }
         });
-        restorers.push(hero.cleanup, () => { if (poster) poster.src = SCREENS[0]; });
+        captions = captionSwap(gsap, hero.stage, hero.evaporator);
+        restorers.push(hero.cleanup, () => { captions.reset(); if (poster) poster.src = SCREENS[0]; delete heroSection.dataset.photo; });
       }
 
       // 2. Plans: an opening and one plan per step; the price counts up as it arrives.
       let plans = null;
+      let swarm = null;
       if (pricing?.querySelector(".story-stage")) {
         const panels = [...pricing.querySelectorAll(".story-panel")];
         const windows = [[0, 0.18], [0.24, 0.43], [0.49, 0.68], [0.74, 1]];
+        const amounts = panels.slice(1).map((panel) => panel.querySelector(".plan-price strong")).filter(Boolean);
+        let captions = null;
         plans = pinnedStory(gsap, ScrollTrigger, {
           section: pricing,
           panels,
           dots: [...pricing.querySelectorAll(".story-dots li")],
           windows,
           length: isDesktop ? 3.2 : 3,
+          small: !isDesktop,
+          onStep: (step) => { pricing.dataset.photo = PLAN_PHOTOS[step]; captions?.show(PLAN_PHOTOS[step]); },
           build: (timeline) => {
-            timeline.fromTo(pricing.querySelector(".story-word"), { scale: 0.9, opacity: 0.9 }, { scale: 1.25, opacity: 0.18, ease: "none", duration: 1 }, 0);
-            panels.slice(1).forEach((panel, index) => {
-              const [enter] = windows[index + 1];
-              const amount = panel.querySelector(".plan-price strong");
-              const target = Number(amount?.dataset.value || 0);
-              const counter = { value: 0 };
-              if (amount && target) {
-                timeline.fromTo(counter, { value: 0 }, {
-                  value: target, duration: 0.07, ease: "power2.out",
-                  onUpdate: () => { amount.textContent = String(Math.round(counter.value)); }
-                }, enter);
-              }
-              timeline.from(panel.querySelectorAll(".price-features li"), { x: 30, autoAlpha: 0, stagger: 0.012, duration: 0.04, ease: "power2.out" }, enter + 0.04);
-            });
+            const photos = pricing.querySelector(".scene-photos");
+            if (photos) timeline.fromTo(photos.querySelectorAll("img"), { scale: 1.08 }, { scale: 1, ease: "none", duration: 1 }, 0);
+            // Prices drawn by a swarm of dots that flies from one price to the next.
+            const stage = pricing.querySelector(".story-stage");
+            if (stage && amounts.length === panels.length - 1) {
+              swarm = createSwarm(stage, { words: amounts, colors: ["#ede8df", "#e65a32", "#d9b27c"], small: !isDesktop, signal });
+              const flight = { v: 0 };
+              panels.slice(1).forEach((panel, index) => {
+                const [enter] = windows[index + 1];
+                timeline.fromTo(flight, { v: index }, { v: index + 1, duration: 0.12, ease: "none", immediateRender: false, onUpdate: () => swarm.set(flight.v) }, enter - 0.05);
+              });
+            }
           }
         });
+        captions = captionSwap(gsap, plans.stage, plans.evaporator);
+        stageArrival(gsap, plans.stage, panels[0]);
+        // After the scene, the last plan leaves through the top: its texts evaporate and the
+        // swarm scatters the price away.
+        const lastAmount = amounts[amounts.length - 1];
+        if (swarm && lastAmount) leaveTop(ScrollTrigger, lastAmount, (progress) => swarm.set(amounts.length + progress), plans.stage);
         restorers.push(plans.cleanup, () => {
-          pricing.querySelectorAll(".plan-price strong").forEach((amount) => { amount.textContent = amount.dataset.value; });
+          captions.reset();
+          swarm?.destroy();
+          delete pricing.dataset.photo;
         });
       }
 
-      // 3. Contact: the title rises word by word while the section comes up, then the scene pins
-      // and shows how it works; the form follows, each part rising as it comes into view.
+      // 3. Contact: the title comes out of the blur while the section comes up, then the scene pins
+      // and shows how it works; the form follows.
       let contact = null;
       const contactStage = contactSection?.querySelector(".story-stage");
-      const contactTitle = contactSection?.querySelector(".contact-intro h2");
-      if (contactStage && contactTitle) {
-        const split = splitWords(contactTitle);
-        restorers.push(split.restore);
-        const how = contactSection.querySelector(".contact-how");
+      if (contactStage?.querySelector(".story-panel")) {
         contact = pinnedStory(gsap, ScrollTrigger, {
           section: contactSection,
           panels: [...contactStage.querySelectorAll(".story-panel")],
           dots: [...contactStage.querySelectorAll(".story-dots li")],
           windows: [[0, 0.42], [0.5, 1]],
           length: isDesktop ? 2.2 : 1.9,
+          small: !isDesktop,
           build: (timeline) => {
-            timeline.fromTo(contactSection.querySelector(".story-word"), { scale: 0.85, opacity: 0.25 }, { scale: 1.15, opacity: 0.9, ease: "none", duration: 1 }, 0);
-            if (!how) return;
-            timeline.from(how.querySelectorAll(".contact-steps li"), { x: 30, opacity: 0, stagger: 0.04, duration: 0.06, ease: "power2.out" }, 0.56);
-            timeline.from(how.querySelectorAll(":scope > .button, :scope > .contact-details"), { y: 24, opacity: 0, stagger: 0.04, duration: 0.06, ease: "power2.out" }, 0.74);
+            const photos = contactStage.querySelector(".scene-photos");
+            if (photos) timeline.fromTo(photos.querySelectorAll("img"), { scale: 1.08 }, { scale: 1, ease: "none", duration: 1 }, 0);
           }
         });
         restorers.push(contact.cleanup);
-        gsap.timeline({ scrollTrigger: { trigger: contactStage, start: "top 85%", end: () => `top top+=${headerHeight()}`, scrub: 0.6 } })
-          .from(contactSection.querySelector(".contact-intro .eyebrow"), { y: 30, opacity: 0, duration: 0.3, ease: "power2.out" }, 0)
-          .from(split.words, { yPercent: 110, opacity: 0, stagger: 0.08, duration: 0.45, ease: "power3.out" }, 0.1)
-          .from(contactTitle.querySelector(":scope > svg"), { scale: 0, rotation: -90, opacity: 0, duration: 0.3, ease: "back.out(2)" }, 0.8);
+        stageArrival(gsap, contactStage, contactStage.querySelector(".story-panel"));
       }
-      // Opacity only, so keyboard users can still reach every field before it is in view.
+
+      // After each scene, its last step (and the caption and notes) leave through the top as dust.
+      for (const story of [hero, plans, contact]) {
+        if (!story) continue;
+        const panels = story.stage.querySelectorAll(".story-panel");
+        const last = panels[panels.length - 1];
+        const blocks = [...(last ? blocksOf(last) : []), ...story.stage.querySelectorAll(".scene-caption, .pricing-note")];
+        blocks.forEach((block) => {
+          const group = story.evaporator.group([block]);
+          leaveTop(ScrollTrigger, block, (progress) => group.set(progress), story.stage);
+        });
+      }
+
+      // Texts outside the scenes (the form, the band and the footer): out of the blur as they
+      // come in from below, and the form turns to dust as it leaves through the top.
+      const loose = createEvaporator(document.body, { small: !isDesktop, fixed: true });
+      restorers.push(() => loose.destroy());
       const contactForm = contactSection?.querySelector(".contact-form");
-      contactForm?.querySelectorAll(":scope > .form-heading, :scope > label, :scope > .form-row, :scope > .form-submit, :scope > .form-note").forEach((part) => {
-        gsap.from(part, { y: 46, opacity: 0, ease: "power2.out", scrollTrigger: { trigger: part, start: "top 97%", end: "top 74%", scrub: 0.6 } });
+      contactForm?.querySelectorAll(":scope > .form-heading, :scope > label, :scope > .form-row, :scope > .contact-plan-hint, :scope > .form-submit, :scope > .form-note").forEach((block) => {
+        arrive(gsap, block);
+        const group = loose.group([block]);
+        leaveTop(ScrollTrigger, block, (progress) => group.set(progress));
       });
+      document.querySelectorAll(".marquee-band, .footer-top > *, .footer-bottom > *").forEach((block) => arrive(gsap, block));
       if (hero) hero.section = heroSection;
       if (plans) plans.section = pricing;
       if (contact) contact.section = contactSection;
+      // Layout changed (resize, fonts): measure the titles and prices again.
+      const refreshEffects = () => {
+        [hero, plans, contact].forEach((story) => story?.evaporator.refresh());
+        loose.refresh();
+        swarm?.refresh();
+      };
+      ScrollTrigger.addEventListener("refresh", refreshEffects);
+      restorers.push(() => ScrollTrigger.removeEventListener("refresh", refreshEffects));
 
       // 4. The 3D phone: one scene behind the whole page, loaded after the page is ready.
       const canvas = document.querySelector(".scene-canvas");
@@ -536,25 +630,21 @@ export function initAnimations({ skipIntro = false } = {}) {
         introduced = true;
         const title = splitChars(heroSection.querySelectorAll(".hero-title .line-inner"));
         restorers.push(title.restore);
-        const intro = gsap.timeline({ paused: true, defaults: { duration: 0.7, ease: "power3.out", clearProps: "transform,opacity,visibility" } });
+        const intro = gsap.timeline({ paused: true, defaults: { duration: 0.7, ease: "power2.out", clearProps: "transform,opacity,visibility,filter" } });
         intro.addLabel("enter", 0);
         const kicker = heroSection.querySelector(".hero-kicker");
-        const spark = heroSection.querySelector(".title-spark");
         const description = heroSection.querySelector(".hero-description");
         const actions = heroSection.querySelector(".hero-actions");
         const note = heroSection.querySelector(".hero-note");
+        const caption = heroSection.querySelector(".scene-caption");
         const visual = heroSection.querySelector(".story-visual");
-        if (kicker) intro.from(kicker, { y: 16, opacity: 0, duration: 0.5 }, "enter");
-        if (title.chars.length) {
-          intro.from(title.chars, {
-            yPercent: 55, rotationX: -95, opacity: 0, transformOrigin: "50% 100%", transformPerspective: 500,
-            stagger: 0.024, duration: 0.85, ease: "power4.out"
-          }, "enter+=.1");
-        }
-        if (spark) intro.from(spark, { scale: 0, rotation: -200, opacity: 0, duration: 0.9, ease: "back.out(2.2)" }, "enter+=.75");
-        if (description) intro.from(description, { y: 20, opacity: 0 }, "enter+=.55");
-        if (actions) intro.from(actions, { y: 16, opacity: 0 }, "enter+=.7");
-        if (note) intro.from(note, { y: 12, opacity: 0 }, "enter+=.8");
+        // Every text comes out of the blur; the title letter by letter, left to right.
+        if (kicker) intro.from(kicker, { ...BLUR_IN, duration: 0.6 }, "enter");
+        if (title.chars.length) intro.from(title.chars, { ...BLUR_IN, stagger: 0.028, duration: 0.8 }, "enter+=.1");
+        if (description) intro.from(description, { ...BLUR_IN }, "enter+=.55");
+        if (actions) intro.from(actions, { ...BLUR_IN }, "enter+=.7");
+        if (note) intro.from(note, { ...BLUR_IN }, "enter+=.8");
+        if (caption) intro.from(caption, { ...BLUR_IN }, "enter+=.9");
         if (visual) intro.from(visual, { y: 90, scale: 0.92, opacity: 0, duration: 1.25, ease: "power4.out" }, "enter+=.2");
         intro.to(intro3d, { lift: 0, duration: 1.4, ease: "power4.out", clearProps: "" }, "enter+=.2");
 
