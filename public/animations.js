@@ -1,4 +1,8 @@
+import { createEvaporator, createSwarm } from "./text-effects.js";
+
 const registeredEngines = new WeakSet();
+// Titles that evaporate when their step leaves and come out of the blur when it arrives.
+const FX_TITLES = ".hero-title, .story-num, .story-line, .plan-name, .contact-intro h2";
 
 // Screens shown by the 3D phone: the three example sites and the WhatsApp chat (index 3).
 const SCREENS = ["/assets/screens/barbearia.webp", "/assets/screens/restaurante.webp", "/assets/screens/petshop.webp", "/assets/screens/whatsapp.webp"];
@@ -115,15 +119,31 @@ function initCursor(gsap, signal) {
 
 // A section pinned under the header while scrolling moves through its panels.
 // windows: [enter, leave] progress for each panel (the first one starts visible).
-function pinnedStory(gsap, ScrollTrigger, { section, panels, dots = [], windows, length, build, onStep }) {
+function pinnedStory(gsap, ScrollTrigger, { section, panels, dots = [], windows, length, build, onStep, small }) {
   const stage = section.querySelector(".story-stage");
   section.classList.add("is-story");
   const timeline = gsap.timeline({ paused: true, defaults: { duration: 0.05 } });
+  const evaporator = createEvaporator(stage, { small });
   gsap.set(panels.slice(1), { autoAlpha: 0, y: 40 });
   panels.forEach((panel, index) => {
     const [enter, leave] = windows[index];
-    if (index > 0) timeline.to(panel, { autoAlpha: 1, y: 0, ease: "power2.out" }, enter);
-    if (leave < 1) timeline.to(panel, { autoAlpha: 0, y: -40, ease: "power2.in" }, leave);
+    const titles = [...panel.querySelectorAll(FX_TITLES)];
+    if (index > 0) {
+      timeline.to(panel, { autoAlpha: 1, y: 0, ease: "power2.out" }, enter);
+      if (titles.length) timeline.fromTo(titles, { filter: "blur(18px)", opacity: 0 }, { filter: "blur(0px)", opacity: 1, duration: 0.07, ease: "power2.out" }, enter);
+    }
+    if (leave >= 1) return;
+    if (!titles.length) {
+      timeline.to(panel, { autoAlpha: 0, y: -40, ease: "power2.in" }, leave);
+      return;
+    }
+    // The rest of the step fades; the titles evaporate, left to right, and then the step hides.
+    const rest = [...panel.children].filter((child) => !titles.includes(child));
+    if (rest.length) timeline.to(rest, { autoAlpha: 0, y: -24, ease: "power2.in" }, leave);
+    const group = evaporator.group(titles);
+    const vapor = { t: 0 };
+    timeline.fromTo(vapor, { t: 0 }, { t: 1, duration: 0.1, ease: "none", onUpdate: () => group.set(vapor.t) }, leave - 0.02);
+    timeline.set(panel, { autoAlpha: 0 }, leave + 0.08);
   });
   build?.(timeline);
   timeline.set({}, {}, 1);
@@ -152,7 +172,10 @@ function pinnedStory(gsap, ScrollTrigger, { section, panels, dots = [], windows,
   return {
     trigger,
     timeline,
+    stage,
+    evaporator,
     cleanup: () => {
+      evaporator.destroy();
       section.classList.remove("is-story");
       panels.forEach((panel) => { panel.inert = false; });
     }
@@ -390,6 +413,7 @@ export function initAnimations({ skipIntro = false } = {}) {
           dots: [...heroSection.querySelectorAll(".story-dots li")],
           windows: [[0, 0.12], [0.16, 0.27], [0.32, 0.44], [0.51, 0.62], [0.69, 0.79], [0.86, 1]],
           length: isDesktop ? 4.4 : 4,
+          small: !isDesktop,
           // A slow push-in on the photos while the scene scrolls.
           build: (timeline) => { if (photos) timeline.fromTo(photos.querySelectorAll("img"), { scale: 1.08 }, { scale: 1, ease: "none", duration: 1 }, 0); },
           onStep: (step) => {
@@ -403,36 +427,40 @@ export function initAnimations({ skipIntro = false } = {}) {
 
       // 2. Plans: an opening and one plan per step; the price counts up as it arrives.
       let plans = null;
+      let swarm = null;
       if (pricing?.querySelector(".story-stage")) {
         const panels = [...pricing.querySelectorAll(".story-panel")];
         const windows = [[0, 0.18], [0.24, 0.43], [0.49, 0.68], [0.74, 1]];
+        const amounts = panels.slice(1).map((panel) => panel.querySelector(".plan-price strong")).filter(Boolean);
         plans = pinnedStory(gsap, ScrollTrigger, {
           section: pricing,
           panels,
           dots: [...pricing.querySelectorAll(".story-dots li")],
           windows,
           length: isDesktop ? 3.2 : 3,
+          small: !isDesktop,
           onStep: (step) => { pricing.dataset.photo = PLAN_PHOTOS[step]; },
           build: (timeline) => {
             const photos = pricing.querySelector(".scene-photos");
             if (photos) timeline.fromTo(photos.querySelectorAll("img"), { scale: 1.08 }, { scale: 1, ease: "none", duration: 1 }, 0);
+            // Prices drawn by a swarm of dots that flies from one price to the next.
+            const stage = pricing.querySelector(".story-stage");
+            if (stage && amounts.length === panels.length - 1) {
+              swarm = createSwarm(stage, { words: amounts, colors: ["#ede8df", "#e65a32", "#d9b27c"], small: !isDesktop, signal });
+              const flight = { v: 0 };
+              panels.slice(1).forEach((panel, index) => {
+                const [enter] = windows[index + 1];
+                timeline.fromTo(flight, { v: index }, { v: index + 1, duration: 0.12, ease: "none", immediateRender: false, onUpdate: () => swarm.set(flight.v) }, enter - 0.05);
+              });
+            }
             panels.slice(1).forEach((panel, index) => {
               const [enter] = windows[index + 1];
-              const amount = panel.querySelector(".plan-price strong");
-              const target = Number(amount?.dataset.value || 0);
-              const counter = { value: 0 };
-              if (amount && target) {
-                timeline.fromTo(counter, { value: 0 }, {
-                  value: target, duration: 0.07, ease: "power2.out",
-                  onUpdate: () => { amount.textContent = String(Math.round(counter.value)); }
-                }, enter);
-              }
               timeline.from(panel.querySelectorAll(".price-features li"), { x: 30, autoAlpha: 0, stagger: 0.012, duration: 0.04, ease: "power2.out" }, enter + 0.04);
             });
           }
         });
         restorers.push(plans.cleanup, () => {
-          pricing.querySelectorAll(".plan-price strong").forEach((amount) => { amount.textContent = amount.dataset.value; });
+          swarm?.destroy();
           delete pricing.dataset.photo;
         });
       }
@@ -452,6 +480,7 @@ export function initAnimations({ skipIntro = false } = {}) {
           dots: [...contactStage.querySelectorAll(".story-dots li")],
           windows: [[0, 0.42], [0.5, 1]],
           length: isDesktop ? 2.2 : 1.9,
+          small: !isDesktop,
           build: (timeline) => {
             const photos = contactStage.querySelector(".scene-photos");
             if (photos) timeline.fromTo(photos.querySelectorAll("img"), { scale: 1.08 }, { scale: 1, ease: "none", duration: 1 }, 0);
@@ -474,6 +503,13 @@ export function initAnimations({ skipIntro = false } = {}) {
       if (hero) hero.section = heroSection;
       if (plans) plans.section = pricing;
       if (contact) contact.section = contactSection;
+      // Layout changed (resize, fonts): measure the titles and prices again.
+      const refreshEffects = () => {
+        [hero, plans, contact].forEach((story) => story?.evaporator.refresh());
+        swarm?.refresh();
+      };
+      ScrollTrigger.addEventListener("refresh", refreshEffects);
+      restorers.push(() => ScrollTrigger.removeEventListener("refresh", refreshEffects));
 
       // 4. The 3D phone: one scene behind the whole page, loaded after the page is ready.
       const canvas = document.querySelector(".scene-canvas");
