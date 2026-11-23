@@ -96,14 +96,6 @@ cada trecho da rolagem. No celular, o 3D aparece só no topo.
 - `public/assets/3d/phone.glb`: o celular, modelado por código no Blender
   (`art/phone.py`). Para refazer: crie um ambiente Python com
   `pip install -r art/requirements.txt` e rode `python art/phone.py`.
-- `public/assets/explode/{desk,mob}/*.webp`: o celular abrindo em camadas
-  (vidro, tela, estrutura, placa e bateria, traseira), 60 quadros renderizados
-  no Blender (Cycles) por `art/explode.py`. A seção "Por dentro do seu site"
-  desenha o quadro da rolagem num canvas. Para refazer: `node art/textures.mjs`
-  e depois `python art/explode.py` (cerca de 1 min por quadro; `--draft` faz
-  prévias).
-- `public/assets/fibers*.webp`: feixe de fibra ótica com as pontas acesas, fundo
-  do "Vamos conversar" no rodapé, renderizado por `art/fibers.py`.
 - `public/assets/screens/*.webp`: telas mostradas no celular. Refaça com
   `npm run screens` quando os exemplos de `/projetos` mudarem.
 - Rolagem suave (Lenis), abertura animada (só na primeira visita da sessão) e
