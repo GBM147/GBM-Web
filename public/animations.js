@@ -163,33 +163,37 @@ function pinnedStory(gsap, ScrollTrigger, { section, panels, dots = [], windows,
 // a section): dx/dy move it in viewport fractions and k sets its height against the anchor.
 // zoom: 1 brings it up close instead (closeUp in createChoreography).
 const HERO_KEYS = [
-  { p: 0, k: 0.82, rx: 0.1, ry: -0.42, rz: 0.06, screen: 0, chat: 0, scroll: 0 },
-  { p: 0.13, k: 0.82, rx: 0.06, ry: -0.3, rz: 0.04, screen: 0, chat: 0, scroll: 0.2 },
-  { p: 0.25, dy: 0.01, k: 0.84, rx: 0.05, ry: 0.3, rz: -0.03, screen: 0, chat: 0, scroll: 0 },
-  // The three examples up close, a full turn between them: the site changes while it shows its back.
-  { p: 0.32, zoom: 1, rx: 0.02, ry: -0.12, rz: 0, screen: 0, chat: 0, scroll: 0 },
-  { p: 0.44, zoom: 1, rx: 0.03, ry: 0.1, rz: 0.01, screen: 0, chat: 0, scroll: 0.45 },
-  { p: 0.51, zoom: 1, rx: 0.02, ry: TAU - 0.12, rz: 0, screen: 1, chat: 0, scroll: 0 },
-  { p: 0.62, zoom: 1, rx: 0.03, ry: TAU + 0.1, rz: 0.01, screen: 1, chat: 0, scroll: 0.45 },
-  { p: 0.69, zoom: 1, rx: 0.02, ry: TAU * 2 - 0.12, rz: 0, screen: 2, chat: 0, scroll: 0 },
-  { p: 0.79, zoom: 1, rx: 0.03, ry: TAU * 2 + 0.1, rz: 0.01, screen: 2, chat: 0, scroll: 0.45 },
-  // Back to its column for the WhatsApp step, turning once more as the chat comes in.
-  { p: 0.88, k: 0.95, rx: 0, ry: TAU * 3, rz: 0, screen: 2, chat: 1, scroll: 0.45 },
-  { p: 1, dy: 0.02, k: 0.97, rx: -0.02, ry: TAU * 3 + 0.08, rz: 0, screen: 2, chat: 1, scroll: 0.45 }
+  { p: 0, k: 0.7, rx: 0.1, ry: -0.42, rz: 0.06, screen: 0, chat: 0, scroll: 0 },
+  { p: 0.13, k: 0.7, rx: 0.06, ry: -0.3, rz: 0.04, screen: 0, chat: 0, scroll: 0.2 },
+  { p: 0.25, dy: 0.01, k: 0.72, rx: 0.05, ry: 0.3, rz: -0.03, screen: 0, chat: 0, scroll: 0 },
+  // The three examples, a full turn between them: the site changes while it shows its back.
+  // Phones bring it up close (zoom); large screens keep it in its column, over the photo.
+  { p: 0.32, zoom: 1, k: 0.76, rx: 0.02, ry: -0.12, rz: 0, screen: 0, chat: 0, scroll: 0 },
+  { p: 0.44, zoom: 1, k: 0.76, rx: 0.03, ry: 0.1, rz: 0.01, screen: 0, chat: 0, scroll: 0.45 },
+  { p: 0.51, zoom: 1, k: 0.76, rx: 0.02, ry: TAU - 0.12, rz: 0, screen: 1, chat: 0, scroll: 0 },
+  { p: 0.62, zoom: 1, k: 0.76, rx: 0.03, ry: TAU + 0.1, rz: 0.01, screen: 1, chat: 0, scroll: 0.45 },
+  { p: 0.69, zoom: 1, k: 0.76, rx: 0.02, ry: TAU * 2 - 0.12, rz: 0, screen: 2, chat: 0, scroll: 0 },
+  { p: 0.79, zoom: 1, k: 0.76, rx: 0.03, ry: TAU * 2 + 0.1, rz: 0.01, screen: 2, chat: 0, scroll: 0.45 },
+  // Back for the WhatsApp step, turning once more as the chat comes in.
+  { p: 0.88, k: 0.78, rx: 0, ry: TAU * 3, rz: 0, screen: 2, chat: 1, scroll: 0.45 },
+  { p: 1, dy: 0.02, k: 0.8, rx: -0.02, ry: TAU * 3 + 0.08, rz: 0, screen: 2, chat: 1, scroll: 0.45 }
 ];
+// Photo behind each step: the example whose site is on the phone (the chat is with the barbershop).
+const HERO_PHOTOS = ["barbearia", "barbearia", "barbearia", "restaurante", "petshop", "barbearia"];
+const PLAN_PHOTOS = ["barbearia", "barbearia", "restaurante", "petshop"];
 const PLANS_KEYS = [
-  { p: 0, k: 0.8, rx: 0.08, ry: TAU * 4 - 0.35, rz: -0.04, screen: 0, chat: 0, scroll: 0 },
-  { p: 0.22, k: 0.82, rx: 0.05, ry: TAU * 4 + 0.3, rz: -0.03, screen: 0, chat: 0, scroll: 0.2 },
-  { p: 0.43, k: 0.82, rx: 0.06, ry: TAU * 4 + 0.1, rz: 0.02, screen: 0, chat: 0, scroll: 0.45 },
-  { p: 0.53, k: 0.82, rx: 0.05, ry: TAU * 5 + 0.1, rz: 0.02, screen: 1, chat: 0, scroll: 0 },
-  { p: 0.68, k: 0.82, rx: 0.06, ry: TAU * 5 - 0.2, rz: -0.02, screen: 1, chat: 0, scroll: 0.4 },
-  { p: 0.78, k: 0.82, rx: 0.05, ry: TAU * 6 - 0.2, rz: 0.02, screen: 2, chat: 0, scroll: 0 },
-  { p: 1, k: 0.84, rx: 0.04, ry: TAU * 6 + 0.25, rz: 0.03, screen: 2, chat: 0, scroll: 0.45 }
+  { p: 0, k: 0.7, rx: 0.08, ry: TAU * 4 - 0.35, rz: -0.04, screen: 0, chat: 0, scroll: 0 },
+  { p: 0.22, k: 0.72, rx: 0.05, ry: TAU * 4 + 0.3, rz: -0.03, screen: 0, chat: 0, scroll: 0.2 },
+  { p: 0.43, k: 0.72, rx: 0.06, ry: TAU * 4 + 0.1, rz: 0.02, screen: 0, chat: 0, scroll: 0.45 },
+  { p: 0.53, k: 0.72, rx: 0.05, ry: TAU * 5 + 0.1, rz: 0.02, screen: 1, chat: 0, scroll: 0 },
+  { p: 0.68, k: 0.72, rx: 0.06, ry: TAU * 5 - 0.2, rz: -0.02, screen: 1, chat: 0, scroll: 0.4 },
+  { p: 0.78, k: 0.72, rx: 0.05, ry: TAU * 6 - 0.2, rz: 0.02, screen: 2, chat: 0, scroll: 0 },
+  { p: 1, k: 0.74, rx: 0.04, ry: TAU * 6 + 0.25, rz: 0.03, screen: 2, chat: 0, scroll: 0.45 }
 ];
 const CONTACT_KEYS = [
-  { p: 0, k: 0.85, rx: 0.06, ry: TAU * 7 - 0.3, rz: 0.03, screen: 2, chat: 1, scroll: 0 },
-  { p: 0.6, k: 0.92, rx: 0.02, ry: TAU * 7 + 0.1, rz: 0, screen: 2, chat: 1, scroll: 0 },
-  { p: 1, k: 0.95, rx: 0, ry: TAU * 7 + 0.25, rz: -0.02, screen: 2, chat: 1, scroll: 0 }
+  { p: 0, k: 0.74, rx: 0.06, ry: TAU * 7 - 0.3, rz: 0.03, screen: 2, chat: 1, scroll: 0 },
+  { p: 0.6, k: 0.78, rx: 0.02, ry: TAU * 7 + 0.1, rz: 0, screen: 2, chat: 1, scroll: 0 },
+  { p: 1, k: 0.8, rx: 0, ry: TAU * 7 + 0.25, rz: -0.02, screen: 2, chat: 1, scroll: 0 }
 ];
 
 // Turns the scroll position into the phone pose: chapters for each pinned scene and the
@@ -244,7 +248,7 @@ function createChoreography({ hero, plans, contact, form, isDesktop }) {
     const vh = window.innerHeight;
     const heroAnchor = anchorOf(hero.section.querySelector(".story-visual"));
     if (!heroAnchor) { chapters = []; return; }
-    const near = closeUp();
+    const near = isDesktop ? null : closeUp();
     const heroPoses = HERO_KEYS.map((key) => resolve(key, heroAnchor, near));
     const heroEnd = { ...heroPoses[heroPoses.length - 1] };
     const list = [{ start: hero.trigger.start, end: hero.trigger.end, keys: heroPoses, hero: true }];
@@ -272,7 +276,7 @@ function createChoreography({ hero, plans, contact, form, isDesktop }) {
         const pose = {
           x: (beside.left + beside.width / 2) / window.innerWidth - 0.5,
           y: 0.5 - (top + room / 2) / vh,
-          h: (0.62 * room) / vh,
+          h: (0.56 * room) / vh,
           rx: 0.04, ry: contactEnd.ry + TAU - 0.35, rz: 0.02, screen: 2, chat: 1, scroll: 0
         };
         const settled = { ...pose, ry: pose.ry + 0.2 };
@@ -379,22 +383,22 @@ export function initAnimations({ skipIntro = false } = {}) {
       let scene = null;
       let hero = null;
       if (heroSection?.querySelector(".story-stage")) {
-        const word = heroSection.querySelector(".story-word");
-        const glow = heroSection.querySelector(".story-glow");
+        const photos = heroSection.querySelector(".scene-photos");
         hero = pinnedStory(gsap, ScrollTrigger, {
           section: heroSection,
           panels: [...heroSection.querySelectorAll(".story-panel")],
           dots: [...heroSection.querySelectorAll(".story-dots li")],
           windows: [[0, 0.12], [0.16, 0.27], [0.32, 0.44], [0.51, 0.62], [0.69, 0.79], [0.86, 1]],
           length: isDesktop ? 4.4 : 4,
-          build: (timeline) => timeline
-            .fromTo(word, { scale: 1 }, { scale: 1.35, ease: "none", duration: 1 }, 0)
-            .fromTo(word, { opacity: 0.95 }, { opacity: 0.12, ease: "none", duration: 0.3 }, 0)
-            .fromTo(glow, { scale: 0.85, opacity: 0.7 }, { scale: 1.3, opacity: 1, ease: "none", duration: 1 }, 0),
-          // Without the 3D phone the still image follows the steps.
-          onStep: (step) => { if (!scene && poster) poster.src = SCREENS[[0, 0, 0, 1, 2, CHAT][step]]; }
+          // A slow push-in on the photos while the scene scrolls.
+          build: (timeline) => { if (photos) timeline.fromTo(photos.querySelectorAll("img"), { scale: 1.08 }, { scale: 1, ease: "none", duration: 1 }, 0); },
+          onStep: (step) => {
+            heroSection.dataset.photo = HERO_PHOTOS[step];
+            // Without the 3D phone the still image follows the steps.
+            if (!scene && poster) poster.src = SCREENS[[0, 0, 0, 1, 2, CHAT][step]];
+          }
         });
-        restorers.push(hero.cleanup, () => { if (poster) poster.src = SCREENS[0]; });
+        restorers.push(hero.cleanup, () => { if (poster) poster.src = SCREENS[0]; delete heroSection.dataset.photo; });
       }
 
       // 2. Plans: an opening and one plan per step; the price counts up as it arrives.
@@ -408,8 +412,10 @@ export function initAnimations({ skipIntro = false } = {}) {
           dots: [...pricing.querySelectorAll(".story-dots li")],
           windows,
           length: isDesktop ? 3.2 : 3,
+          onStep: (step) => { pricing.dataset.photo = PLAN_PHOTOS[step]; },
           build: (timeline) => {
-            timeline.fromTo(pricing.querySelector(".story-word"), { scale: 0.9, opacity: 0.9 }, { scale: 1.25, opacity: 0.18, ease: "none", duration: 1 }, 0);
+            const photos = pricing.querySelector(".scene-photos");
+            if (photos) timeline.fromTo(photos.querySelectorAll("img"), { scale: 1.08 }, { scale: 1, ease: "none", duration: 1 }, 0);
             panels.slice(1).forEach((panel, index) => {
               const [enter] = windows[index + 1];
               const amount = panel.querySelector(".plan-price strong");
@@ -427,6 +433,7 @@ export function initAnimations({ skipIntro = false } = {}) {
         });
         restorers.push(plans.cleanup, () => {
           pricing.querySelectorAll(".plan-price strong").forEach((amount) => { amount.textContent = amount.dataset.value; });
+          delete pricing.dataset.photo;
         });
       }
 
@@ -446,7 +453,8 @@ export function initAnimations({ skipIntro = false } = {}) {
           windows: [[0, 0.42], [0.5, 1]],
           length: isDesktop ? 2.2 : 1.9,
           build: (timeline) => {
-            timeline.fromTo(contactSection.querySelector(".story-word"), { scale: 0.85, opacity: 0.25 }, { scale: 1.15, opacity: 0.9, ease: "none", duration: 1 }, 0);
+            const photos = contactStage.querySelector(".scene-photos");
+            if (photos) timeline.fromTo(photos.querySelectorAll("img"), { scale: 1.08 }, { scale: 1, ease: "none", duration: 1 }, 0);
             if (!how) return;
             timeline.from(how.querySelectorAll(".contact-steps li"), { x: 30, opacity: 0, stagger: 0.04, duration: 0.06, ease: "power2.out" }, 0.56);
             timeline.from(how.querySelectorAll(":scope > .button, :scope > .contact-details"), { y: 24, opacity: 0, stagger: 0.04, duration: 0.06, ease: "power2.out" }, 0.74);

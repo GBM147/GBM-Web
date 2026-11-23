@@ -580,3 +580,155 @@ html.has-3d .hero .story-glow { opacity: 0; transition: opacity .6s ease; }
   .contact-layout { grid-template-columns: minmax(0, 1fr); }
   .form-visual { display: none; }
 }
+
+/* ===== Direção B · Editorial escuro =====
+   Preto quente, papel e laranja só nos detalhes. Títulos em serifada de revista (Instrument Serif),
+   o resto em Manrope. As palavras gigantes dão lugar às fotos dos modelos em tela cheia, que trocam
+   junto com o site mostrado no celular. Menos brilho, mais espaço e linhas finas. */
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("/assets/fonts/instrument-serif-latin-400-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("/assets/fonts/instrument-serif-latin-400-italic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}
+:root {
+  --ink: #0e0d0b;
+  --charcoal: #1c1a17;
+  --paper: #ede8df;
+  --white: #f6f2ea;
+  --soft: #b3ada2;
+  --muted: #8c877e;
+  --rule: #2a2824;
+  --dark-rule: #2a2824;
+  --orange: #e65a32;
+  --orange-light: #ec7a50;
+  --orange-dark: #c2471f;
+  --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --body: "Manrope", system-ui, sans-serif;
+  color-scheme: dark;
+}
+body { background: var(--ink); color: var(--paper); font-family: var(--body); }
+em { font-family: var(--serif); font-style: italic; font-weight: 400; }
+::selection { background: var(--orange); color: var(--ink); }
+
+/* Header: translucent black, numbered links, the call to action underlined in orange. */
+.site-header, .site-header.on-dark { background: rgb(14 13 11 / 74%); border-color: var(--rule); color: var(--paper); }
+.desktop-nav { counter-reset: nav; gap: 32px; }
+.desktop-nav a { counter-increment: nav; color: var(--soft); transition: color .2s ease; }
+.desktop-nav a::before { content: "0" counter(nav); margin-right: 7px; font-size: 11px; font-weight: 700; color: var(--orange); }
+.desktop-nav a:hover { color: var(--paper); }
+.header-cta, .site-header.on-dark .header-cta { gap: 10px; padding: 9px 0; border-radius: 0; background: transparent; color: var(--paper); border-bottom: 1px solid var(--orange); }
+.header-cta:hover, .site-header.on-dark .header-cta:hover { background: transparent; color: var(--orange-light); }
+.mobile-menu { background: var(--ink); }
+.mobile-menu a { font-family: var(--serif); font-size: 34px; font-weight: 400; letter-spacing: -.01em; border-color: var(--rule); }
+
+/* Labels: small caps with a fine line instead of a dot. */
+.hero-kicker, .eyebrow, .hero .hero-kicker { font-family: var(--body); font-size: 11px; font-weight: 600; letter-spacing: .2em; color: var(--muted); }
+.hero .hero-kicker > .status-dot, .contact-intro .eyebrow > .status-dot { width: 28px; height: 1px; flex: 0 0 28px; border-radius: 0; background: var(--muted); }
+
+/* Buttons: solid paper, orange on hover; squarer corners. */
+.button { border-radius: 3px; }
+.button-primary, .hero .button-primary { background: var(--paper); color: var(--ink); }
+.button-primary:hover, .hero .button-primary:hover { background: var(--orange); color: var(--ink); }
+.button-accent { background: var(--orange); color: var(--ink); }
+.button-accent:hover { background: var(--orange-light); }
+.text-link, .hero .text-link { border-color: #4a463f; color: var(--paper); }
+.text-link:hover, .hero .text-link:hover { color: var(--orange-light); border-color: var(--orange-light); }
+
+/* Headlines in the magazine serif. */
+.hero .hero-title { font-family: var(--serif); font-weight: 400; font-size: clamp(68px, 7.4vw, 118px); line-height: .9; letter-spacing: -.012em; color: var(--paper); }
+.hero .hero-title em { color: var(--orange-light); font-size: 1em; letter-spacing: -.01em; line-height: .9; }
+.hero .hero-description, .hero .hero-note, .story-text { color: var(--soft); }
+.story-num { font-family: var(--serif); font-weight: 400; font-size: clamp(130px, 13.5vw, 214px); line-height: .8; letter-spacing: -.02em; }
+.story-num small { margin-left: .12em; font-family: var(--body); font-size: .15em; font-weight: 600; letter-spacing: .04em; color: var(--orange-light); }
+.story-line, .project-panel .story-line { font-family: var(--serif); font-weight: 400; font-size: clamp(48px, 5vw, 82px); line-height: .95; letter-spacing: -.01em; }
+.story-line em { color: var(--orange-light); }
+.project-count { font-family: var(--body); color: var(--orange-light); }
+.project-count small { color: #5d5951; }
+.project-kind, .project-note { color: var(--muted); }
+
+/* Full-bleed photos of the examples, faded into the black; they change with the phone's screen. */
+.story-glow, .scene-glow, .story-word { display: none; }
+.scene-photos { position: absolute; top: 0; bottom: 0; right: 0; z-index: 0; width: 55%; overflow: hidden; pointer-events: none; }
+.scene-photos img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1s ease; }
+.scene-photos::after { content: ""; position: absolute; inset: -1px; z-index: 1; background: linear-gradient(90deg, var(--ink) 0%, rgb(14 13 11 / 78%) 18%, rgb(14 13 11 / 12%) 55%, rgb(14 13 11 / 30%) 100%), linear-gradient(0deg, var(--ink) 0%, rgb(14 13 11 / 0%) 28%), linear-gradient(180deg, var(--ink) 0%, rgb(14 13 11 / 0%) 24%); }
+.plans-stage .scene-photos { right: auto; left: 0; width: 50%; }
+.plans-stage .scene-photos::after { background: linear-gradient(270deg, var(--ink) 0%, rgb(14 13 11 / 78%) 18%, rgb(14 13 11 / 12%) 55%, rgb(14 13 11 / 30%) 100%), linear-gradient(0deg, var(--ink) 0%, rgb(14 13 11 / 0%) 28%), linear-gradient(180deg, var(--ink) 0%, rgb(14 13 11 / 0%) 24%); }
+.scene-photos img:first-of-type,
+[data-photo="barbearia"] .scene-photos img[data-photo="barbearia"],
+[data-photo="restaurante"] .scene-photos img[data-photo="restaurante"],
+[data-photo="petshop"] .scene-photos img[data-photo="petshop"] { opacity: 1; }
+[data-photo]:not([data-photo="barbearia"]) .scene-photos img[data-photo="barbearia"] { opacity: 0; }
+.scene-caption { position: absolute; left: 48px; bottom: 44px; z-index: 2; margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--soft); }
+.scene-caption span { display: none; }
+.scene-caption span:first-child,
+[data-photo="restaurante"] .scene-caption span[data-photo="restaurante"],
+[data-photo="petshop"] .scene-caption span[data-photo="petshop"] { display: inline; }
+[data-photo]:not([data-photo="barbearia"]) .scene-caption span[data-photo="barbearia"] { display: none; }
+.pricing-section:not(.is-story) .scene-photos, .contact-section:not(.is-story) .scene-photos { display: none; }
+.story-dots li { background: #3a372f; }
+.story-dots li.is-active { background: var(--orange); }
+.poster-phone { width: min(220px, 40%); }
+
+/* Plans: names and prices in the serif, the featured tag underlined. */
+.plan-name { font-family: var(--serif); font-weight: 400; font-size: clamp(54px, 5.4vw, 92px); line-height: .92; letter-spacing: -.01em; }
+.plan-price span { font-family: var(--body); color: var(--orange-light); }
+.plan-price strong { font-family: var(--serif); font-weight: 400; font-size: clamp(130px, 13.5vw, 214px); line-height: .8; letter-spacing: -.02em; color: var(--paper); background: none; -webkit-background-clip: border-box; background-clip: border-box; }
+.plan-price small, .plan-panel .price-audience, .pricing-note { color: var(--muted); }
+.plan-panel .price-desc { color: var(--soft); }
+.plan-panel .price-tag, .plan-panel .price-audience span { color: var(--orange-light); }
+.plan-panel.featured .price-tag { padding: 0 0 4px; border-radius: 0; background: transparent; color: var(--orange-light); border-bottom: 1px solid var(--orange); }
+.pricing-section:not(.is-story) .plan-panel { border-color: var(--rule); border-radius: 4px; background: var(--charcoal); }
+.pricing-section:not(.is-story) .plan-panel.featured { border-color: var(--orange); }
+
+/* Contact: the big serif question, then a flat form card. */
+.contact-section, .contact-stage { background: var(--ink); }
+.contact-intro h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(66px, 8vw, 134px); line-height: .9; letter-spacing: -.012em; }
+.contact-intro h2 em { color: var(--orange-light); font-size: 1em; }
+.contact-intro h2 > svg { color: var(--orange-light); }
+.contact-copy > p, .contact-details > span, .form-heading > span, .form-note, .form-status { color: var(--muted); }
+.contact-steps li { color: var(--paper); }
+.contact-steps b { border-color: #3a362f; color: var(--orange-light); }
+.contact-form { padding: 32px; border: 1px solid var(--rule); border-radius: 4px; background: var(--charcoal); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.form-heading h3 { font-family: var(--serif); font-weight: 400; font-size: 36px; line-height: 1; letter-spacing: -.01em; }
+.contact-form input:not([type="checkbox"]), .contact-form textarea, .contact-form select { background: var(--ink); border-color: #34312b; border-radius: 3px; }
+.contact-form input:focus, .contact-form textarea:focus, .contact-form select:focus { border-color: var(--orange-light); }
+.form-submit { border-radius: 3px; }
+
+/* Segment band and footer. */
+.marquee-band { background: var(--ink); border-color: var(--rule); }
+.marquee-group span, .marquee-group em { font-family: var(--serif); font-weight: 400; font-size: clamp(36px, 4.4vw, 64px); letter-spacing: -.01em; }
+.marquee-group em { font-style: italic; color: var(--orange-light); }
+.marquee-group svg { width: 12px; height: 12px; color: #5d5951; }
+.site-footer { background: var(--ink); border-color: var(--rule); }
+.footer-mark { font-family: var(--body); }
+.footer-top p, .footer-side p, .footer-bottom { color: var(--muted); }
+.footer-bottom { border-color: var(--rule); }
+.site-footer .review-form { border-color: var(--rule); background: var(--charcoal); border-radius: 4px; }
+.site-footer .review-form input:not([type="radio"]), .site-footer .review-form textarea { background: var(--ink); border-color: #34312b; }
+.scroll-progress { height: 2px; background: var(--orange); }
+.cursor-ring { border-width: 1px; border-color: rgb(237 232 223 / 55%); }
+.cursor-ring.is-active { background: rgb(230 90 50 / 12%); border-color: var(--orange); }
+.intro-loader, html.intro .intro-loader { background: var(--ink); }
+
+@media (max-width: 899px) {
+  .hero .scene-photos { bottom: auto; left: 0; width: 100%; height: clamp(300px, 43svh, 420px); }
+  .hero .scene-photos::after { background: linear-gradient(0deg, var(--ink) 0%, rgb(14 13 11 / 78%) 26%, rgb(14 13 11 / 22%) 62%, rgb(14 13 11 / 45%) 100%); }
+  .plans-stage .scene-photos, .contact-stage .scene-photos, .scene-caption { display: none; }
+  .hero .hero-title { font-size: clamp(50px, 14vw, 76px); }
+  .story-num { font-size: clamp(100px, 28vw, 150px); }
+  .story-line, .project-panel .story-line { font-size: clamp(40px, 11vw, 58px); }
+  .plan-name { font-size: clamp(46px, 12vw, 64px); }
+  .plan-price strong { font-size: clamp(104px, 30vw, 150px); }
+  .contact-intro h2 { font-size: clamp(56px, 15.5vw, 88px); }
+  .contact-form { padding: 22px; }
+  .marquee-group span, .marquee-group em { font-size: clamp(30px, 8vw, 44px); }
+}

@@ -164,9 +164,9 @@ export function createPhoneScene(canvas, { screens, modelUrl = "/assets/3d/phone
   const phone = new Group();
   pivot.add(phone);
   scene.add(pivot);
-  const rimLeft = new PointLight(0xff5a1f, 40, 9);
+  const rimLeft = new PointLight(0xff5a1f, 26, 9);
   rimLeft.position.set(-2.4, -1.4, -1.6);
-  const rimRight = new PointLight(0xff9a64, 24, 9);
+  const rimRight = new PointLight(0xff9a64, 16, 9);
   rimRight.position.set(2.6, 1.8, -1.2);
   pivot.add(rimLeft, rimRight);
 
@@ -211,7 +211,7 @@ export function createPhoneScene(canvas, { screens, modelUrl = "/assets/3d/phone
   });
 
   // Sparks floating around the phone (they travel with it).
-  const COUNT = 120;
+  const COUNT = 44;
   const seeds = [];
   for (let i = 0; i < COUNT; i++) {
     // Always behind the phone: dust in the light, never specks on top of the screen.
@@ -219,7 +219,7 @@ export function createPhoneScene(canvas, { screens, modelUrl = "/assets/3d/phone
   }
   const sparkGeometry = new BufferGeometry();
   sparkGeometry.setAttribute("position", new Float32BufferAttribute(new Float32Array(COUNT * 3), 3));
-  const sparks = new Points(sparkGeometry, new PointsMaterial({ map: sparkTexture(), size: 0.05, transparent: true, opacity: 0.8, blending: AdditiveBlending, depthWrite: false }));
+  const sparks = new Points(sparkGeometry, new PointsMaterial({ map: sparkTexture(), size: 0.05, transparent: true, opacity: 0.45, blending: AdditiveBlending, depthWrite: false }));
   pivot.add(sparks);
 
   // Screen textures: tall prints that scroll inside the screen.
