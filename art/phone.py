@@ -195,13 +195,15 @@ def build(fresh=True):
     parts.append(join(buttons, "Buttons"))
     # Port and speaker holes face the bottom edge: built at the origin, turned and then moved.
     face_down = Matrix.Rotation(math.radians(90), 4, "X")
-    port = rounded_box("Port", 0.13, 0.026, 0.05, 0.012, bevel=0)
-    place(port, face_down, (0, -HEIGHT / 2 + 0.008, 0))
+    # Thin dark inserts flush with the metal (a hair proud of it), so they read as openings
+    # instead of black pegs sticking out of the bottom edge.
+    port = rounded_box("Port", 0.13, 0.026, 0.004, 0.012, bevel=0)
+    place(port, face_down, (0, -HEIGHT / 2 + 0.0012, 0))
     parts.append(port)
     holes = []
     for x in [-0.32, -0.29, -0.26, -0.23, 0.23, 0.26, 0.29, 0.32]:
-        hole = cylinder("Speaker", 0.0085, 0.05, (0, 0, 0), segments=16)
-        place(hole, face_down, (x, -HEIGHT / 2 + 0.004, 0))
+        hole = cylinder("Speaker", 0.0085, 0.004, (0, 0, 0), segments=16)
+        place(hole, face_down, (x, -HEIGHT / 2 + 0.0012, 0))
         holes.append(hole)
     parts.append(join(holes, "Speaker"))
     phone = bpy.data.objects.new("Phone", None)

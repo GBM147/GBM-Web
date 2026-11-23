@@ -6,7 +6,7 @@ import {
   AdditiveBlending, AmbientLight, BackSide, BoxGeometry, BufferGeometry, CanvasTexture, Color, DirectionalLight,
   DoubleSide, Float32BufferAttribute, Group, LinearFilter, Mesh, MeshBasicMaterial, MeshPhysicalMaterial,
   PerspectiveCamera, PlaneGeometry, PMREMGenerator, PointLight, Points, PointsMaterial, Scene, SRGBColorSpace,
-  TextureLoader, WebGLRenderer, ACESFilmicToneMapping, MathUtils
+  TextureLoader, WebGLRenderer, ACESFilmicToneMapping, MathUtils, NoColorSpace
 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
@@ -32,8 +32,51 @@ function studio() {
   panel(0.4, 7, "#ff5a1f", 7, [-3.8, 0, -1.4]);
   panel(0.4, 7, "#ff8c4a", 4.5, [3.8, 0.4, -1.8]);
   panel(6, 0.35, "#ffffff", 1.4, [0, -3.6, 1.2]);
+  // Soft lights behind the camera: the screen glass catches them as a faint sheen that slides
+  // across the display as the phone turns, like any phone photographed in a studio.
+  const soft = (width, height, color, strength, position) => {
+    const mesh = new Mesh(new PlaneGeometry(width, height), new MeshBasicMaterial({ map: softTexture(), color: new Color(color).multiplyScalar(strength), side: DoubleSide }));
+    mesh.position.set(...position);
+    mesh.lookAt(0, 0, 0);
+    room.add(mesh);
+  };
+  soft(6.5, 4.5, "#fff6ee", 0.25, [-1.6, 2.4, 5.4]);
+  // Long diagonal streaks like the one in the Blender renders (art/video_shots.py): the glass
+  // catches them as the phone turns (the poses turn it about 25 degrees each way). When the
+  // phone faces the camera the screen stays clear, so the site on it reads well.
+  const streak = (length, width, strength, position, spin) => {
+    const mesh = new Mesh(new PlaneGeometry(width, length), new MeshBasicMaterial({ map: streakTexture(), color: new Color("#ffffff").multiplyScalar(strength), side: DoubleSide }));
+    mesh.position.set(...position);
+    mesh.lookAt(0, 0, 0);
+    mesh.rotateZ(MathUtils.degToRad(spin));
+    room.add(mesh);
+  };
+  streak(11, 1.3, 3.6, [-3.15, -0.3, 4.5], -38);
+  streak(11, 1.0, 3, [2.1, 0.2, 5.1], -38);
   return room;
 }
+
+// Bright down the middle, fading to black on both long sides.
+const streakTexture = () => canvasTexture(128, 4, (context, width, height) => {
+  const gradient = context.createLinearGradient(0, 0, width, 0);
+  gradient.addColorStop(0, "#000000");
+  gradient.addColorStop(0.3, "#3a3a3a");
+  gradient.addColorStop(0.5, "#ffffff");
+  gradient.addColorStop(0.7, "#3a3a3a");
+  gradient.addColorStop(1, "#000000");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, width, height);
+});
+
+// White in the middle fading to black at the edges: a softbox without hard borders.
+const softTexture = () => canvasTexture(128, 128, (context, width, height) => {
+  const gradient = context.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width / 2);
+  gradient.addColorStop(0, "#ffffff");
+  gradient.addColorStop(0.45, "#9a9a9a");
+  gradient.addColorStop(1, "#000000");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, width, height);
+});
 
 function canvasTexture(width, height, draw) {
   const canvas = document.createElement("canvas");
@@ -47,23 +90,35 @@ function canvasTexture(width, height, draw) {
 }
 
 // GBM symbol on the back of the phone, drawn from the same paths as #brand-mark.
-const backTexture = () => canvasTexture(512, 1054, (context, width, height) => {
-  const gradient = context.createLinearGradient(0, 0, width, height);
-  gradient.addColorStop(0, "#2d2b27");
-  gradient.addColorStop(1, "#191816");
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, width, height);
+// mask = true draws the roughness map instead: frosted glass all over, the logo polished.
+const backTexture = (mask = false) => {
+  const texture = backCanvas(mask);
+  // The roughness map is data, not color.
+  if (mask) texture.colorSpace = NoColorSpace;
+  return texture;
+};
+const backCanvas = (mask) => canvasTexture(512, 1054, (context, width, height) => {
+  if (mask) {
+    context.fillStyle = "#7a7a7a";
+    context.fillRect(0, 0, width, height);
+  } else {
+    const gradient = context.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, "#2d2b27");
+    gradient.addColorStop(1, "#191816");
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, width, height);
+  }
   context.save();
   context.translate(width / 2 - 70, height / 2 - 110);
   context.scale(3.5, 3.5);
-  context.strokeStyle = "#e65a32";
+  context.strokeStyle = mask ? "#141414" : "#e65a32";
   context.lineWidth = 5;
   context.stroke(new Path2D("M28 10a14 14 0 1 0 5 14H20"));
   context.lineWidth = 4;
   context.stroke(new Path2D("M25 4h11v11"));
   context.stroke(new Path2D("m24 16 12-12"));
   context.restore();
-  context.fillStyle = "#f6f4ee";
+  context.fillStyle = mask ? "#141414" : "#f6f4ee";
   context.font = "700 54px Manrope, sans-serif";
   context.textAlign = "center";
   context.fillText("GBM Web", width / 2, height / 2 + 120);
@@ -122,7 +177,8 @@ export function createPhoneScene(canvas, { screens, modelUrl = "/assets/3d/phone
     LensRing: new MeshPhysicalMaterial({ color: new Color("#3b3a36"), metalness: 1, roughness: 0.22 }),
     Glass: new MeshPhysicalMaterial({ color: new Color("#050505"), roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.02 }),
     Island: new MeshBasicMaterial({ color: 0x020202, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }),
-    Back: new MeshPhysicalMaterial({ map: backTexture(), metalness: 0.15, roughness: 0.5, clearcoat: 0.8, clearcoatRoughness: 0.35 }),
+    // Frosted glass (soft, wide reflections) with the logo polished.
+    Back: new MeshPhysicalMaterial({ map: backTexture(), roughnessMap: backTexture(true), metalness: 0.1, roughness: 1.1, clearcoat: 0.45, clearcoatRoughness: 0.95, clearcoatRoughnessMap: backTexture(true) }),
     Plateau: new MeshPhysicalMaterial({ color: new Color("#22211e"), metalness: 0.3, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.05 }),
     LensGlass: new MeshPhysicalMaterial({ color: new Color("#090c13"), roughness: 0.02, clearcoat: 1, iridescence: 0.7, iridescenceIOR: 1.6 }),
     Flash: new MeshPhysicalMaterial({ color: new Color("#efe3c6"), roughness: 0.3 }),
@@ -132,7 +188,7 @@ export function createPhoneScene(canvas, { screens, modelUrl = "/assets/3d/phone
   const screenA = new Mesh(undefined, new MeshBasicMaterial({ color: 0x111111, toneMapped: false }));
   const screenB = new Mesh(undefined, new MeshBasicMaterial({ transparent: true, opacity: 0, toneMapped: false }));
   // Cover glass: only its reflections are added on top of the display.
-  const cover = new Mesh(undefined, new MeshPhysicalMaterial({ color: 0x000000, roughness: 0.03, clearcoat: 1, transparent: true, blending: AdditiveBlending, depthWrite: false, envMapIntensity: 0.9 }));
+  const cover = new Mesh(undefined, new MeshPhysicalMaterial({ color: 0x000000, roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.03, transparent: true, blending: AdditiveBlending, depthWrite: false, envMapIntensity: 1.25 }));
   const model = new Promise((resolve, reject) => {
     new GLTFLoader().load(modelUrl, (gltf) => {
       gltf.scene.traverse((object) => {
@@ -158,7 +214,8 @@ export function createPhoneScene(canvas, { screens, modelUrl = "/assets/3d/phone
   const COUNT = 120;
   const seeds = [];
   for (let i = 0; i < COUNT; i++) {
-    seeds.push({ x: (Math.random() - 0.5) * 3.4, y: (Math.random() - 0.5) * 3.2, z: (Math.random() - 0.5) * 2 - 0.4, speed: 0.08 + Math.random() * 0.18 });
+    // Always behind the phone: dust in the light, never specks on top of the screen.
+    seeds.push({ x: (Math.random() - 0.5) * 3.8, y: (Math.random() - 0.5) * 3.2, z: -0.45 - Math.random() * 1.8, speed: 0.08 + Math.random() * 0.18 });
   }
   const sparkGeometry = new BufferGeometry();
   sparkGeometry.setAttribute("position", new Float32BufferAttribute(new Float32Array(COUNT * 3), 3));
@@ -217,6 +274,11 @@ export function createPhoneScene(canvas, { screens, modelUrl = "/assets/3d/phone
     phone.rotation.set(current.rx + state.tiltX, current.ry + state.tiltY + idle * 0.03, current.rz);
     applyScreen(screenA, screen.a, screen.scroll);
     applyScreen(screenB, screen.b, 0);
+    // A real display loses a little brightness off-axis.
+    const facing = Math.max(0, Math.cos(phone.rotation.x) * Math.cos(phone.rotation.y));
+    const shade = 0.86 + 0.14 * facing;
+    if (screenA.material.map) screenA.material.color.setScalar(shade);
+    if (screenB.material.map) screenB.material.color.setScalar(shade);
     screenB.material.opacity = screen.mix;
     screenB.visible = screen.mix > 0.01;
     const position = sparkGeometry.attributes.position;
